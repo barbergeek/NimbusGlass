@@ -1,3 +1,6 @@
+# NimbusGlass runtime state (generated from config/config.default.json; may hold API keys)
+/data/*.json
+
 # Logs
 logs
 *.log

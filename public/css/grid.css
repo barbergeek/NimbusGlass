@@ -1,0 +1,90 @@
+/*
+  Layout manager. Each of the three columns (left/center/right) is its own
+  independent flex container - DOM structure built in app.js - so a
+  column's top/middle/bottom zone heights are never forced to match the
+  other two columns'. Within a column, each zone sizes to its own content
+  (not a fixed 1/3 share) via `justify-content: space-between` on .column
+  plus `flex: 0 0 auto` on .zone - a zone with several stacked modules
+  grows, an empty one collapses to ~0px. A full-width bottom-bar row runs
+  below all three columns. [data-orientation="portrait"] stacks the column
+  groups vertically instead of side by side, for a rotated panel.
+*/
+
+#mirror-grid {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  padding: var(--gap);
+  gap: var(--gap);
+  box-sizing: border-box;
+}
+
+.columns-row {
+  display: flex;
+  flex: 1;
+  gap: var(--gap);
+  min-height: 0;
+}
+
+body[data-orientation='portrait'] .columns-row {
+  flex-direction: column;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--gap);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden; /* safety net: clips only if a column's total content still exceeds its height */
+}
+
+.zone {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto; /* size to content, not a forced share of the column - an
+                      empty zone (no modules) takes ~0px, one with several
+                      stacked modules takes what it actually needs */
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.zone[data-zone='top-left']      { align-items: flex-start; }
+.zone[data-zone='top-center']    { align-items: center; }
+.zone[data-zone='top-right']     { align-items: flex-end; }
+.zone[data-zone='middle-left']   { align-items: flex-start; justify-content: center; }
+.zone[data-zone='middle-center'] { align-items: center; justify-content: center; }
+.zone[data-zone='middle-right']  { align-items: flex-end; justify-content: center; }
+.zone[data-zone='bottom-left']   { align-items: flex-start; justify-content: flex-end; }
+.zone[data-zone='bottom-center'] { align-items: center; justify-content: flex-end; }
+.zone[data-zone='bottom-right']  { align-items: flex-end; justify-content: flex-end; }
+.zone[data-zone='bottom-bar']    { flex-direction: row; align-items: stretch; }
+
+.module-card {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 20px;
+  width: 100%;
+}
+
+/* A card's 16px top/bottom padding is sized for a card alone in its zone.
+   When a zone stacks several modules, that padding doubles up at each seam
+   (one card's bottom + the next one's top) on top of the zone's own gap -
+   tighten just the seam-facing side, only when there's a sibling to face. */
+.zone .module-card:not(:last-child) {
+  padding-bottom: 8px;
+}
+
+.zone .module-card:not(:first-child) {
+  padding-top: 8px;
+}
+
+.zone[data-zone='bottom-bar'] .module-card {
+  padding: 10px 20px;
+}

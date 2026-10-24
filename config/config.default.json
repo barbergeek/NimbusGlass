@@ -1,0 +1,74 @@
+{
+  "theme": "vibrant-dark",
+  "orientation": "landscape",
+  "location": {
+    "city": "Columbus,OH,US",
+    "lat": null,
+    "lon": null,
+    "country": "US"
+  },
+  "zones": [
+    "top-left", "top-center", "top-right",
+    "middle-left", "middle-center", "middle-right",
+    "bottom-left", "bottom-center", "bottom-right",
+    "bottom-bar"
+  ],
+  "layout": {
+    "top-left": ["clock", "holidays"],
+    "top-center": [],
+    "top-right": ["weather"],
+    "middle-left": [],
+    "middle-center": [],
+    "middle-right": [],
+    "bottom-left": [],
+    "bottom-center": [],
+    "bottom-right": [],
+    "bottom-bar": ["scoreboard"]
+  },
+  "modules": {
+    "clock": {
+      "label": "Clock & Calendar",
+      "enabled": true,
+      "settings": {
+        "format24h": false,
+        "showSeconds": false,
+        "showDate": true,
+        "events": []
+      }
+    },
+    "holidays": {
+      "label": "Upcoming Holidays",
+      "enabled": true,
+      "settings": {
+        "count": 5,
+        "refreshHours": 12
+      }
+    },
+    "weather": {
+      "label": "Local Weather",
+      "enabled": true,
+      "settings": {
+        "apiKey": "",
+        "units": "imperial",
+        "forecastDays": 3,
+        "refreshMinutes": 10
+      }
+    },
+    "scoreboard": {
+      "label": "Sports Scoreboard",
+      "enabled": true,
+      "settings": {
+        "leagues": {
+          "NFL": { "enabled": true, "favorites": [], "conferences": [] },
+          "NHL": { "enabled": true, "favorites": [], "conferences": [] },
+          "MLB": { "enabled": true, "favorites": [], "conferences": [] },
+          "English Premier League": { "enabled": true, "favorites": [], "conferences": [] },
+          "NCAAF": { "enabled": true, "favorites": [], "conferences": [] },
+          "NCAAM": { "enabled": false, "favorites": [], "conferences": [] }
+        },
+        "rotateSeconds": 8,
+        "refreshMinutes": 2
+      }
+    }
+  }
+}

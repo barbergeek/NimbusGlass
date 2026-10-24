@@ -1,0 +1,16 @@
+[Unit]
+Description=NimbusGlass smart mirror server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__NIMBUSGLASS_USER__
+WorkingDirectory=__NIMBUSGLASS_DIR__
+ExecStart=__NODE_BIN__ __NIMBUSGLASS_DIR__/src/server/server.js
+Restart=on-failure
+RestartSec=3
+EnvironmentFile=__NIMBUSGLASS_DIR__/.env
+
+[Install]
+WantedBy=multi-user.target

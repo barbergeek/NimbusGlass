@@ -1,0 +1,8 @@
+# X11/Openbox kiosk autostart, installed to ~/.config/openbox/autostart by
+# scripts/install.sh (see docs/KIOSK_SETUP.md for the manual equivalent).
+
+xset s off &
+xset s noblank &
+xset -dpms &
+
+__NIMBUSGLASS_DIR__/scripts/kiosk-start.sh &

@@ -1,0 +1,65 @@
+/*
+  Theming engine: every module reads these custom properties instead of
+  hardcoding colors. Swapping [data-theme] on <body> (driven by config.theme)
+  is enough to re-skin the whole mirror with no JS changes to modules.
+*/
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  --radius: 14px;
+  --gap: 18px;
+}
+
+[data-theme='vibrant-dark'] {
+  --bg: #05060a;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-border: rgba(255, 255, 255, 0.08);
+  --text-primary: #f5f7ff;
+  --text-secondary: #9aa3c4;
+  --accent-1: #ff5ecb;
+  --accent-2: #5ea8ff;
+  --accent-3: #7bffb0;
+  --accent-4: #ffd166;
+  --shadow: 0 0 40px rgba(94, 168, 255, 0.08);
+}
+
+[data-theme='vibrant-light'] {
+  --bg: #f4f5fb;
+  --surface: rgba(10, 12, 30, 0.04);
+  --surface-border: rgba(10, 12, 30, 0.08);
+  --text-primary: #10121c;
+  --text-secondary: #4a4f6b;
+  --accent-1: #d6005f;
+  --accent-2: #0063d1;
+  --accent-3: #08875a;
+  --accent-4: #c47a00;
+  --shadow: 0 0 30px rgba(10, 12, 30, 0.06);
+}
+
+[data-theme='mono'] {
+  --bg: #000000;
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-border: rgba(255, 255, 255, 0.1);
+  --text-primary: #ffffff;
+  --text-secondary: #8a8a8a;
+  --accent-1: #ffffff;
+  --accent-2: #cccccc;
+  --accent-3: #ffffff;
+  --accent-4: #cccccc;
+  --shadow: none;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  overflow: hidden;
+}

@@ -1,0 +1,187 @@
+/* Per-module visual styling. Each module owns one top-level class. */
+
+/* --- Clock --- */
+.clock-module .clock-time {
+  font-size: 3.4rem;
+  font-weight: 600;
+  color: var(--accent-2);
+  line-height: 1;
+}
+
+.clock-module .clock-date {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+
+.clock-module .clock-events {
+  margin-top: 10px;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.clock-module .clock-events li {
+  color: var(--accent-3);
+  list-style: none;
+  padding: 2px 0;
+}
+
+/* --- Holidays --- */
+.holidays-module .holidays-status {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.holidays-module .holidays-list {
+  margin: 0;
+  padding: 0;
+  font-size: 0.95rem;
+}
+
+.holidays-module .holidays-list li {
+  list-style: none;
+  padding: 2px 0;
+  display: flex;
+  gap: 10px;
+}
+
+.holidays-module .holiday-date {
+  color: var(--accent-1);
+  font-weight: 600;
+  min-width: 3.2em;
+}
+
+.holidays-module .holiday-name {
+  color: var(--text-primary);
+}
+
+/* --- Weather --- */
+.weather-module .weather-location {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  margin-bottom: 6px;
+}
+
+.weather-module .weather-current {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.weather-module .weather-temp {
+  font-size: 2.6rem;
+  font-weight: 600;
+  color: var(--accent-4);
+}
+
+.weather-module .weather-condition {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.weather-module .weather-forecast {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.weather-module .forecast-day {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.weather-module .forecast-day .hi { color: var(--accent-1); font-weight: 600; }
+.weather-module .forecast-day .lo { color: var(--text-secondary); }
+
+/* --- Scoreboard --- */
+.scoreboard-module {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.scoreboard-league {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.scoreboard-league-name {
+  flex: 0 0 auto;
+  color: var(--accent-2);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.scoreboard-pinned {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  flex: 0 0 auto; /* never shrinks or scrolls off - favorites always stay on screen */
+}
+
+.scoreboard-games {
+  display: flex;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none; /* kiosk display - nobody's scrolling this by hand */
+}
+
+.scoreboard-games::-webkit-scrollbar {
+  display: none;
+}
+
+.score-card {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 12px;
+  background: var(--surface);
+  border-radius: 8px;
+  border-left: 3px solid transparent;
+  white-space: nowrap;
+}
+
+.score-card.favorite {
+  border-left-color: var(--accent-3);
+}
+
+.score-teams {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+}
+
+.score-logo {
+  width: 1.3em;
+  height: 1.3em;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
+
+.score-team { color: var(--text-primary); font-weight: 600; }
+.score-team.winner { color: var(--accent-3); }
+.score-value { color: var(--accent-4); font-weight: 700; min-width: 1.3em; text-align: center; }
+.score-sep { color: var(--text-secondary); }
+
+.score-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.score-status { color: var(--text-secondary); font-size: 0.75rem; }
+.score-network { color: var(--accent-2); font-size: 0.75rem; }

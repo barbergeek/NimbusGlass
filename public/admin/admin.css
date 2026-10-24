@@ -1,0 +1,255 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: #0d0f1a;
+  color: #f2f3fb;
+  font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  padding: 16px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 0 0 4px;
+}
+
+.subtitle {
+  color: #8a90b8;
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+  color: #5ea8ff;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.field label {
+  font-size: 0.8rem;
+  color: #8a90b8;
+}
+
+.field input[type='text'],
+.field input[type='password'],
+.field input[type='number'],
+.field select {
+  background: #11131f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f2f3fb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.row.wrap { flex-wrap: wrap; }
+
+.hint {
+  color: #8a90b8;
+  font-size: 0.85rem;
+  margin: 0 0 12px;
+}
+
+.preview-wrapper {
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #000;
+}
+
+.preview-frame {
+  border: 0;
+  display: block;
+  transform-origin: top left;
+}
+
+.zone-order-group {
+  margin-bottom: 16px;
+}
+
+.zone-order-group:last-child {
+  margin-bottom: 0;
+}
+
+.zone-order-group h3 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: #8a90b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.zone-order-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.zone-order-list li {
+  display: grid;
+  grid-template-columns: auto 1fr 160px;
+  align-items: center;
+  gap: 12px;
+  background: #11131f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  cursor: grab;
+  user-select: none;
+}
+
+.zone-order-list li:active {
+  cursor: grabbing;
+}
+
+.zone-order-list li input,
+.zone-order-list li select {
+  cursor: auto;
+}
+
+.zone-order-list li.dragging {
+  opacity: 0.4;
+}
+
+.zone-order-list[data-zone=''] li {
+  cursor: default; /* unassigned group: not draggable, dropdown still works */
+}
+
+.league-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.league-tab {
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #8a90b8;
+  background: #11131f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.league-tab.enabled {
+  color: #f2f3fb;
+  border-color: rgba(94, 168, 255, 0.4);
+}
+
+.league-tab.active {
+  background: #5ea8ff;
+  color: #0d0f1a;
+  border-color: #5ea8ff;
+  font-weight: 600;
+}
+
+#league-panel .row {
+  justify-content: flex-start;
+}
+
+.panel-subheading {
+  margin: 16px 0 2px;
+  font-size: 0.85rem;
+  color: #f2f3fb;
+  font-weight: 600;
+}
+
+.panel-subheading:first-of-type {
+  margin-top: 14px;
+}
+
+#league-panel .row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+#league-panel label.row {
+  justify-content: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+#team-picker-host input[type='text'] {
+  background: #11131f;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f2f3fb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.team-search-results {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-content: flex-start;
+}
+
+.team-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #f2f3fb;
+  background: #11131f;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.toggle {
+  width: 42px;
+  height: 24px;
+  accent-color: #5ea8ff;
+}
+
+#status {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #1a7d4a;
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+#status.visible { opacity: 1; }

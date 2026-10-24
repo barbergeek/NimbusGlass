@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NimbusGlass Admin</title>
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <h1>NimbusGlass</h1>
+  <p class="subtitle">Admin console — changes apply to the mirror instantly.</p>
+  <div id="status">Saved</div>
+
+  <div class="card">
+    <h2>Preview</h2>
+    <p class="hint">Live render of the mirror display, at actual aspect ratio - updates automatically as you change settings below.</p>
+    <div class="field">
+      <label for="preview-size-select">Preview target size</label>
+      <select id="preview-size-select">
+        <option value="1024x600">1024x600 (7" touchscreen)</option>
+        <option value="800x480">800x480 (7" touchscreen, lower-res)</option>
+        <option value="1920x1080">1920x1080 (larger panel)</option>
+      </select>
+    </div>
+    <div id="preview-wrapper" class="preview-wrapper">
+      <iframe id="preview-frame" class="preview-frame" src="/" title="Mirror preview"></iframe>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Display</h2>
+    <div class="field">
+      <label for="theme-select">Theme</label>
+      <select id="theme-select">
+        <option value="vibrant-dark">Vibrant Dark</option>
+        <option value="vibrant-light">Vibrant Light</option>
+        <option value="mono">Mono</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="orientation-select">Orientation</label>
+      <select id="orientation-select">
+        <option value="landscape">Landscape</option>
+        <option value="portrait">Portrait</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Modules & Layout</h2>
+    <p class="hint">Grouped by zone. Drag a module to reorder it within its zone (top to bottom, or left to right in the bottom bar); use the dropdown to move it to a different zone.</p>
+    <div id="module-rows"></div>
+  </div>
+
+  <div class="card">
+    <h2>Location</h2>
+    <p class="hint">Shared by Weather and Upcoming Holidays.</p>
+    <div class="field">
+      <label for="location-city">City (e.g. "Haymarket,VA,US") - used for weather</label>
+      <input type="text" id="location-city" />
+    </div>
+    <div class="field">
+      <label for="location-country">Country code (e.g. "US") - used for holidays</label>
+      <input type="text" id="location-country" maxlength="2" style="text-transform: uppercase;" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Weather</h2>
+    <div class="field">
+      <label for="weather-units">Units</label>
+      <select id="weather-units">
+        <option value="imperial">Fahrenheit</option>
+        <option value="metric">Celsius</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="weather-apikey">OpenWeatherMap API key</label>
+      <input type="password" id="weather-apikey" placeholder="leave blank to use server .env value" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Upcoming Holidays</h2>
+    <div class="field">
+      <label for="holidays-count">Number of holidays to show</label>
+      <input type="number" id="holidays-count" min="1" max="20" />
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sports Scoreboard</h2>
+    <div class="field">
+      <label for="scoreboard-rotate">Scroll long sections every (seconds)</label>
+      <input type="number" id="scoreboard-rotate" min="3" max="60" />
+    </div>
+    <div class="league-tabs" id="league-tabs"></div>
+    <div id="league-panel"></div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>
