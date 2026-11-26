@@ -14,7 +14,7 @@
     container.innerHTML = `
       ${location ? `<div class="weather-location">${escapeHtml(location)}</div>` : ''}
       <div class="weather-current">
-        <img src="${ICON_URL(current.icon)}" alt="${current.condition}" width="56" height="56" />
+        <img src="${ICON_URL(current.icon)}" alt="${current.condition}" class="weather-icon-current" />
         <div>
           <div class="weather-temp">${current.temp}&deg;</div>
           <div class="weather-condition">${current.condition} · feels ${current.feelsLike}&deg;</div>
@@ -26,7 +26,7 @@
             (day) => `
           <div class="forecast-day">
             <div>${new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' })}</div>
-            <img src="${ICON_URL(day.icon)}" alt="${day.summary}" width="32" height="32" />
+            <img src="${ICON_URL(day.icon)}" alt="${day.summary}" class="weather-icon-forecast" />
             <div><span class="hi">${day.high}&deg;</span> / <span class="lo">${day.low}&deg;</span></div>
           </div>`
           )

@@ -47,6 +47,7 @@
     document.body.dataset.orientation = config.orientation || 'landscape';
     const scalePercent = Math.min(100, Math.max(50, Number(config.scale) || 100));
     grid.style.setProperty('--display-scale', String(scalePercent / 100));
+    grid.toggleAttribute('data-scaled', scalePercent !== 100);
 
     // Each of the three columns (left/center/right) is its own independent
     // flex container - a column's row heights are driven by that column's
@@ -78,6 +79,10 @@
       for (const zoneName of columns[columnName]) {
         mountZone(columnEl, zoneName, config);
       }
+
+      // A column with nothing in it would still claim a third of the
+      // width - drop it so the columns that do have modules get the room.
+      if (!columnEl.querySelector('.module-card')) columnEl.remove();
     }
 
     if (bottomBarZone) {

@@ -11,7 +11,7 @@
 :root {
   --font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
   --radius: 14px;
-  --gap: 18px;
+  --gap: 12px;
 }
 
 [data-theme='vibrant-dark'] {

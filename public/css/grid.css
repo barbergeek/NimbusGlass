@@ -13,7 +13,10 @@
 /*
   --display-scale (config.scale, set from app.js): lays the mirror out on a
   larger virtual canvas and shrinks it to fit, so more fits on a small
-  panel - e.g. 0.78 makes an 800x480 screen lay out like 1024x614.
+  panel - e.g. 0.78 makes an 800x480 screen lay out like 1024x614. The
+  transform is only applied when scaled ([data-scaled]): at native size it
+  would still force a GPU compositing layer, which on the Pi's vc4 GPU drew
+  stray edge artifacts.
 */
 #mirror-grid {
   --display-scale: 1;
@@ -21,11 +24,14 @@
   flex-direction: column;
   width: calc(100vw / var(--display-scale));
   height: calc(100vh / var(--display-scale));
-  transform: scale(var(--display-scale));
-  transform-origin: 0 0;
   padding: var(--gap);
   gap: var(--gap);
   box-sizing: border-box;
+}
+
+#mirror-grid[data-scaled] {
+  transform: scale(var(--display-scale));
+  transform-origin: 0 0;
 }
 
 .columns-row {
@@ -77,7 +83,7 @@ body[data-orientation='portrait'] .columns-row {
   border: 1px solid var(--surface-border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 16px 20px;
+  padding: 14px 16px;
   width: 100%;
 }
 
@@ -94,7 +100,7 @@ body[data-orientation='portrait'] .columns-row {
 }
 
 .zone[data-zone='bottom-bar'] .module-card {
-  padding: 10px 20px;
+  padding: 10px 16px;
 }
 
 /*
