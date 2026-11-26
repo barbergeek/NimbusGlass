@@ -22,22 +22,44 @@
     return team.logo ? `<img class="score-logo" src="${esc(team.logo)}" alt="" onerror="this.style.display='none'">` : '';
   }
 
+  /** "Fri 3:00 PM" in the mirror's local time. */
+  function upcomingTime(startTime) {
+    return new Date(startTime).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  }
+
   function gameCard(game, favorite) {
     const awayWin = game.away.winner;
     const homeWin = game.home.winner;
+    const upcoming = game.when === 'upcoming';
+    // Upcoming games have no score yet - show "AWAY @ HOME" instead of 0 - 0.
+    const middle = upcoming
+      ? `<span class="score-sep">@</span>`
+      : `<span class="score-value">${esc(game.away.score ?? '-')}</span>
+          <span class="score-sep">–</span>
+          <span class="score-value">${esc(game.home.score ?? '-')}</span>`;
+    let meta;
+    if (upcoming) {
+      const league = LEAGUE_ABBREVIATIONS[game.league] || game.league;
+      meta = `<span class="score-league-tag">${esc(league)}</span>
+          <span class="score-status">${esc(upcomingTime(game.startTime))}</span>`;
+    } else {
+      meta = `${game.when === 'yesterday' ? '<span class="score-when">Yesterday</span>' : ''}
+          <span class="score-status">${esc(game.statusDetail)}</span>`;
+    }
+    const classes = ['score-card', favorite ? 'favorite' : '', game.when === 'yesterday' ? 'yesterday' : '']
+      .filter(Boolean)
+      .join(' ');
     return `
-      <div class="score-card${favorite ? ' favorite' : ''}">
+      <div class="${classes}">
         <div class="score-teams">
           ${teamLogo(game.away)}
           <span class="score-team${awayWin ? ' winner' : ''}">${esc(game.away.abbreviation)}</span>
-          <span class="score-value">${esc(game.away.score ?? '-')}</span>
-          <span class="score-sep">–</span>
-          <span class="score-value">${esc(game.home.score ?? '-')}</span>
+          ${middle}
           <span class="score-team${homeWin ? ' winner' : ''}">${esc(game.home.abbreviation)}</span>
           ${teamLogo(game.home)}
         </div>
         <div class="score-meta">
-          <span class="score-status">${esc(game.statusDetail)}</span>
+          ${meta}
           ${game.broadcast ? `<span class="score-network">${esc(game.broadcast)}</span>` : ''}
         </div>
       </div>
@@ -67,10 +89,25 @@
     return section;
   }
 
-  function render(container, leagues, leagueSettings) {
+  /**
+   * Favorites' next games across all leagues, soonest first, in one row -
+   * a row per league would stack five or six rows on a small panel. It's a
+   * scrolling track like any other, so it rotates when it overflows.
+   */
+  function upcomingSection(games) {
+    const section = document.createElement('div');
+    section.className = 'scoreboard-league scoreboard-upcoming';
+    section.innerHTML = `
+      <div class="scoreboard-league-name">Next</div>
+      <div class="scoreboard-games">${games.map((g) => gameCard(g, true)).join('')}</div>
+    `;
+    return section;
+  }
+
+  function render(container, leagues, upcoming, leagueSettings) {
     container.innerHTML = '';
     const withGames = leagues.filter(({ games, error }) => !error && games.length);
-    if (!withGames.length) {
+    if (!withGames.length && !upcoming.length) {
       container.innerHTML = '<div class="score-status">No games today</div>';
       return;
     }
@@ -78,6 +115,7 @@
       const favorites = (leagueSettings[league] && leagueSettings[league].favorites) || [];
       container.appendChild(leagueSection(league, games, favorites));
     }
+    if (upcoming.length) container.appendChild(upcomingSection(upcoming));
   }
 
   /** Eases scrollLeft from its current value to `target` over `durationMs`, then calls `onDone`. */
@@ -154,7 +192,7 @@
     try {
       const res = await fetch('/api/scores');
       const data = await res.json();
-      render(container, data.leagues || [], settings.leagues || {});
+      render(container, data.leagues || [], data.upcoming || [], settings.leagues || {});
     } catch (err) {
       container.innerHTML = '<div class="score-status">Scores unavailable</div>';
     }

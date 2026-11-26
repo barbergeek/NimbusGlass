@@ -221,4 +221,7 @@
 }
 
 .score-status { color: var(--text-secondary); font-size: 0.9rem; }
+.score-when { color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; }
+.score-league-tag { color: var(--accent-2); font-size: 0.9rem; font-weight: 700; }
+.score-card.yesterday { opacity: 0.75; } /* last night's finals - present, but quieter than today's */
 .score-network { color: var(--accent-2); font-size: 0.9rem; }

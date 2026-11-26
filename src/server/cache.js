@@ -21,7 +21,14 @@ class TTLCache {
   }
 
   set(key, value, ttlMs) {
-    this.store.set(key, { value, expiresAt: Date.now() + ttlMs });
+    const now = Date.now();
+    // Drop anything expired while we're here: some keys (e.g. per-date
+    // scoreboard fetches) are never read again once their day passes, so
+    // expiry-on-read alone would let them pile up forever.
+    for (const [k, entry] of this.store) {
+      if (entry.expiresAt <= now) this.store.delete(k);
+    }
+    this.store.set(key, { value, expiresAt: now + ttlMs });
   }
 
   /**

@@ -46,10 +46,11 @@
     }
   }
 
-  async function refresh(container) {
+  async function refresh(container, state) {
     try {
       const res = await fetch('/api/holidays');
       const data = await res.json();
+      state.data = data;
       render(container, data);
     } catch (err) {
       container.innerHTML = `<div class="holidays-status">Holidays unavailable</div>`;
@@ -60,11 +61,32 @@
   window.NimbusModules.holidays = {
     mount(container, settings) {
       container.classList.add('holidays-module');
-      refresh(container);
-      const intervalId = setInterval(() => refresh(container), (settings.refreshHours || 12) * 60 * 60 * 1000);
+      const state = { data: null };
+      refresh(container, state);
+      const intervalId = setInterval(() => refresh(container, state), (settings.refreshHours || 12) * 60 * 60 * 1000);
+
+      // The column's height changes when other modules do - e.g. the
+      // scoreboard gaining rows for yesterday's scores or upcoming games.
+      // Re-render the full list and trim again, so it neither gets clipped
+      // mid-line when space shrinks nor stays short when space comes back.
+      // (The column is sized by the layout, not by this list, so
+      // re-rendering here can't feed back into another resize.)
+      let pending = 0;
+      const column = container.closest('.column');
+      const observer =
+        column && typeof ResizeObserver === 'function'
+          ? new ResizeObserver(() => {
+              cancelAnimationFrame(pending);
+              pending = requestAnimationFrame(() => state.data && render(container, state.data));
+            })
+          : null;
+      if (observer) observer.observe(column);
+
       return {
         destroy() {
           clearInterval(intervalId);
+          cancelAnimationFrame(pending);
+          if (observer) observer.disconnect();
         },
       };
     },

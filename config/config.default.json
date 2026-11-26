@@ -77,6 +77,8 @@
           "NCAAW": { "enabled": false, "favorites": [], "conferences": [] },
           "MLS": { "enabled": false, "favorites": [], "conferences": [] }
         },
+        "upcomingDays": 7,
+        "rolloverHours": 12,
         "rotateSeconds": 8,
         "refreshMinutes": 2
       }

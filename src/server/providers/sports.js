@@ -16,6 +16,10 @@ const { fetchConferenceMap } = require('./conferences');
  */
 
 const REFRESH_MS = 2 * 60 * 1000; // matches MMM-MyScoreboard's default poll interval
+// Yesterday's finals and future days' schedules barely change - fetch them
+// far less often than today's live scores.
+const OTHER_DAY_TTL_MS = 60 * 60 * 1000;
+const MAX_UPCOMING_DAYS = 14;
 
 // ESPN buckets games by US Eastern calendar date; this uses the server's
 // local date instead. Fine for Eastern-ish deployments (the default config
@@ -23,18 +27,21 @@ const REFRESH_MS = 2 * 60 * 1000; // matches MMM-MyScoreboard's default poll int
 // both "today" fetches for a server running well outside US time zones.
 // MMM-MyScoreboard's neighborGameDate() handles this properly if that
 // matters for your deployment.
-function todayStr() {
+function dateStr(offsetDays = 0) {
   const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}${mm}${dd}`;
 }
 
-function scoreboardUrl(league) {
+// ESPN's scoreboard takes one date per request (a "YYYYMMDD-YYYYMMDD" range
+// returns HTTP 400), so yesterday and each upcoming day are fetched separately.
+function scoreboardUrl(league, date) {
   const leaguePath = LEAGUE_PATHS[league];
   if (!leaguePath) throw new Error(`Unsupported league: ${league}`);
-  let url = `https://site.api.espn.com/apis/site/v2/sports/${leaguePath}/scoreboard?dates=${todayStr()}&limit=200`;
+  let url = `https://site.api.espn.com/apis/site/v2/sports/${leaguePath}/scoreboard?dates=${date}&limit=200`;
   if (NCAA_GROUPS[league]) url += `&groups=${NCAA_GROUPS[league]}`;
   return url;
 }
@@ -82,9 +89,10 @@ function normalizeEvent(event) {
   };
 }
 
-async function fetchLeague(league) {
-  return cache.wrap(`sports:${league}`, REFRESH_MS, async () => {
-    const url = scoreboardUrl(league);
+/** One league's games on one date ("YYYYMMDD"), cached for `ttlMs`. */
+async function fetchLeagueDay(league, date, ttlMs) {
+  return cache.wrap(`sports:${league}:${date}`, ttlMs, async () => {
+    const url = scoreboardUrl(league, date);
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`ESPN scoreboard request failed for ${league}: ${response.status}`);
@@ -128,22 +136,76 @@ async function selectAndOrderGames(league, games, favorites, conferences) {
  * `{ [league]: { enabled, favorites, conferences } }` - see
  * config/config.default.json and selectAndOrderGames() above for the
  * favorites/conferences selection rules.
+ *
+ * Options:
+ * - rolloverHours: before this hour (local time), yesterday's games are
+ *   still shown after today's, tagged when: 'yesterday' - so last night's
+ *   final scores stay up through the morning. 0 turns it off.
+ * - upcomingDays: favorites' next game within this many days (after
+ *   today) is returned in a separate `upcoming` list, soonest first - one
+ *   per favorite team, skipped for a team that already plays today.
+ *   0 turns it off.
  */
-async function fetchScores(leagueSettings = {}) {
+async function fetchScores(leagueSettings = {}, { rolloverHours = 0, upcomingDays = 0 } = {}) {
   const enabledLeagues = Object.keys(leagueSettings).filter((league) => leagueSettings[league].enabled);
+  const showYesterday = new Date().getHours() < Number(rolloverHours);
+  const days = Math.min(MAX_UPCOMING_DAYS, Math.max(0, Math.floor(Number(upcomingDays) || 0)));
+
   const results = await Promise.all(
     enabledLeagues.map(async (league) => {
       const { favorites = [], conferences = [] } = leagueSettings[league];
+      let games = [];
+      let upcoming = [];
+      let error = null;
       try {
-        const games = await fetchLeague(league);
-        const selected = await selectAndOrderGames(league, games, favorites, conferences);
-        return { league, games: selected, error: null };
+        const today = await fetchLeagueDay(league, dateStr(0), REFRESH_MS);
+        games = (await selectAndOrderGames(league, today, favorites, conferences)).map((g) => ({ ...g, when: 'today' }));
+
+        if (showYesterday) {
+          const yesterday = await fetchLeagueDay(league, dateStr(-1), OTHER_DAY_TTL_MS);
+          const selected = await selectAndOrderGames(league, yesterday, favorites, conferences);
+          games = games.concat(selected.map((g) => ({ ...g, when: 'yesterday' })));
+        }
+
+        if (days && favorites.length) {
+          upcoming = await nextFavoriteGames(league, favorites, games, days);
+        }
       } catch (err) {
-        return { league, games: [], error: err.message };
+        error = err.message;
       }
+      return { league, games, upcoming, error };
     })
   );
-  return results;
+
+  const upcoming = results
+    .flatMap((r) => r.upcoming.map((game) => ({ ...game, league: r.league })))
+    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+  return { leagues: results.map(({ upcoming: _u, ...rest }) => rest), upcoming };
+}
+
+/** Each favorite's first game in the next `days` days, unless it plays today. */
+async function nextFavoriteGames(league, favorites, todaysGames, days) {
+  const playingToday = new Set(
+    favorites.filter((abbr) => todaysGames.some((g) => g.when === 'today' && gameHasTeam(g, abbr)))
+  );
+  const pending = favorites.filter((abbr) => !playingToday.has(abbr));
+  if (!pending.length) return [];
+
+  const dayGames = await Promise.all(
+    Array.from({ length: days }, (_, i) => fetchLeagueDay(league, dateStr(i + 1), OTHER_DAY_TTL_MS).catch(() => []))
+  );
+
+  const found = new Map(); // game id -> game (two favorites can share one game)
+  for (const abbr of pending) {
+    for (const games of dayGames) {
+      const game = games.find((g) => g.state === 'pre' && gameHasTeam(g, abbr));
+      if (game) {
+        found.set(game.id, { ...game, when: 'upcoming' });
+        break;
+      }
+    }
+  }
+  return [...found.values()];
 }
 
 module.exports = { fetchScores, LEAGUE_PATHS };

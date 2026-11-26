@@ -494,6 +494,9 @@
     document.getElementById('holidays-count').value = config.modules.holidays.settings.count;
 
     document.getElementById('scoreboard-rotate').value = config.modules.scoreboard.settings.rotateSeconds;
+    const scoreboardSettings = config.modules.scoreboard.settings;
+    document.getElementById('scoreboard-upcoming').value = scoreboardSettings.upcomingDays ?? 7;
+    document.getElementById('scoreboard-rollover').value = String(scoreboardSettings.rolloverHours ?? 12);
 
     renderModuleRows(config);
     renderLeagueTabs(config);
@@ -578,6 +581,14 @@
 
   document.getElementById('holidays-count').addEventListener('change', (e) =>
     send({ modules: { holidays: { settings: { count: Number(e.target.value) } } } })
+  );
+
+  document.getElementById('scoreboard-upcoming').addEventListener('change', (e) => {
+    const days = Math.min(14, Math.max(0, Math.round(Number(e.target.value) || 0)));
+    send({ modules: { scoreboard: { settings: { upcomingDays: days } } } });
+  });
+  document.getElementById('scoreboard-rollover').addEventListener('change', (e) =>
+    send({ modules: { scoreboard: { settings: { rolloverHours: Number(e.target.value) } } } })
   );
 
   document.getElementById('scoreboard-rotate').addEventListener('change', (e) =>

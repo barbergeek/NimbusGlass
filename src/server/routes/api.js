@@ -49,10 +49,13 @@ function buildApiRouter() {
   router.get('/scores', async (req, res) => {
     const { settings } = configStore.get().modules.scoreboard;
     try {
-      const data = await fetchScores(settings.leagues);
-      res.json({ leagues: data });
+      const data = await fetchScores(settings.leagues, {
+        rolloverHours: settings.rolloverHours,
+        upcomingDays: settings.upcomingDays,
+      });
+      res.json(data);
     } catch (err) {
-      res.status(502).json({ error: err.message, leagues: [] });
+      res.status(502).json({ error: err.message, leagues: [], upcoming: [] });
     }
   });
 
