@@ -6,6 +6,7 @@
   const AVAILABLE_LEAGUES = ['NFL', 'NHL', 'MLB', 'NCAAF', 'NCAAM', 'NCAAW', 'English Premier League', 'MLS'];
 
   let currentConfig = null;
+  let actualDisplay = null; // { width, height } reported by the mirror itself
   let activeLeague = AVAILABLE_LEAGUES[0];
   let activeLeagueSearch = '';
   const teamsByLeague = new Map(); // league -> Promise<team[]>, fetched once and reused across tab switches
@@ -24,10 +25,19 @@
   function updatePreview(config) {
     const frame = document.getElementById('preview-frame');
     const wrapper = document.getElementById('preview-wrapper');
-    const [presetW, presetH] = document.getElementById('preview-size-select').value.split('x').map(Number);
-    const landscape = config.orientation !== 'portrait';
-    const sourceW = landscape ? presetW : presetH;
-    const sourceH = landscape ? presetH : presetW;
+    const selected = document.getElementById('preview-size-select').value;
+    let sourceW;
+    let sourceH;
+    if (selected === 'actual' && actualDisplay) {
+      // The mirror's own reported viewport - already reflects its rotation.
+      sourceW = actualDisplay.width;
+      sourceH = actualDisplay.height;
+    } else {
+      const [presetW, presetH] = (selected === 'actual' ? '1024x600' : selected).split('x').map(Number);
+      const landscape = config.orientation !== 'portrait';
+      sourceW = landscape ? presetW : presetH;
+      sourceH = landscape ? presetH : presetW;
+    }
 
     const maxPreviewWidth = 480; // fits comfortably inside the admin card
     const scale = Math.min(1, maxPreviewWidth / sourceW);
@@ -392,6 +402,20 @@
       });
   }
 
+  /** "Lays out as 1024x614" for the selected scale, once the mirror has reported its size. */
+  function renderScaleHint() {
+    const hint = document.getElementById('scale-hint');
+    const scale = (Number(currentConfig && currentConfig.scale) || 100) / 100;
+    const base = 'Smaller fits more on the screen; text gets smaller too.';
+    if (!actualDisplay) {
+      hint.textContent = base;
+      return;
+    }
+    const w = Math.round(actualDisplay.width / scale);
+    const h = Math.round(actualDisplay.height / scale);
+    hint.textContent = `${base} At this scale the ${actualDisplay.width}x${actualDisplay.height} display lays out like ${w}x${h}.`;
+  }
+
   function renderForm(config) {
     currentConfig = config;
 
@@ -420,6 +444,8 @@
     renderDimMethodStatus(dimming);
 
     document.getElementById('rotation-select').value = String(config.rotation || 0);
+    document.getElementById('scale-select').value = String(config.scale || 100);
+    renderScaleHint();
 
     document.getElementById('location-city').value = config.location.city || '';
     document.getElementById('location-country').value = config.location.country || '';
@@ -436,12 +462,31 @@
     renderLeaguePanel(config);
   }
 
+  socket.on('display:info', (info) => {
+    actualDisplay = info;
+    const select = document.getElementById('preview-size-select');
+    let option = select.querySelector('option[value="actual"]');
+    if (!option) {
+      option = document.createElement('option');
+      option.value = 'actual';
+      select.prepend(option);
+      select.value = 'actual'; // default to the real panel once it's known
+    }
+    option.textContent = `${info.width}x${info.height} (this mirror's display)`;
+    if (currentConfig) {
+      updatePreview(currentConfig);
+      renderScaleHint();
+    }
+  });
+
   document.getElementById('preview-size-select').addEventListener('change', () => {
     if (currentConfig) updatePreview(currentConfig);
   });
 
   document.getElementById('theme-select').addEventListener('change', (e) => send({ theme: e.target.value }));
   document.getElementById('orientation-select').addEventListener('change', (e) => send({ orientation: e.target.value }));
+
+  document.getElementById('scale-select').addEventListener('change', (e) => send({ scale: Number(e.target.value) }));
 
   document.getElementById('rotation-select').addEventListener('change', (e) => {
     send({ rotation: Number(e.target.value) });

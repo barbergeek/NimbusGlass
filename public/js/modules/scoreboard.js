@@ -94,7 +94,12 @@
 
   /** A card's left edge within the track's scrollable content, regardless of CSS positioning context. */
   function cardOffset(track, card) {
-    return card.getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft;
+    // getBoundingClientRect is in screen pixels, after the display-scale
+    // transform (config.scale); scrollLeft is in the track's own layout
+    // pixels. Convert so the two agree at any scale.
+    const trackRect = track.getBoundingClientRect();
+    const ratio = track.offsetWidth ? trackRect.width / track.offsetWidth : 1;
+    return (card.getBoundingClientRect().left - trackRect.left) / (ratio || 1) + track.scrollLeft;
   }
 
   /**

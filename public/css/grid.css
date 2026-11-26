@@ -10,11 +10,19 @@
   groups vertically instead of side by side, for a rotated panel.
 */
 
+/*
+  --display-scale (config.scale, set from app.js): lays the mirror out on a
+  larger virtual canvas and shrinks it to fit, so more fits on a small
+  panel - e.g. 0.78 makes an 800x480 screen lay out like 1024x614.
+*/
 #mirror-grid {
+  --display-scale: 1;
   display: flex;
   flex-direction: column;
-  width: 100vw;
-  height: 100vh;
+  width: calc(100vw / var(--display-scale));
+  height: calc(100vh / var(--display-scale));
+  transform: scale(var(--display-scale));
+  transform-origin: 0 0;
   padding: var(--gap);
   gap: var(--gap);
   box-sizing: border-box;

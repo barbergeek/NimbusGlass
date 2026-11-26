@@ -45,6 +45,8 @@
     document.body.dataset.theme = config.theme;
     document.documentElement.dataset.theme = config.theme;
     document.body.dataset.orientation = config.orientation || 'landscape';
+    const scalePercent = Math.min(100, Math.max(50, Number(config.scale) || 100));
+    grid.style.setProperty('--display-scale', String(scalePercent / 100));
 
     // Each of the three columns (left/center/right) is its own independent
     // flex container - a column's row heights are driven by that column's
@@ -109,6 +111,20 @@
   }
 
   setInterval(applyDimming, 30 * 1000);
+
+  // Report this screen's real viewport so /admin can preview at the same
+  // size. Skipped inside the admin's preview iframe, which would otherwise
+  // report the preview's own size.
+  function reportDisplayInfo() {
+    if (window.self !== window.top) return;
+    socket.emit('display:info', {
+      width: window.innerWidth,
+      height: window.innerHeight,
+      devicePixelRatio: window.devicePixelRatio,
+    });
+  }
+  socket.on('connect', reportDisplayInfo);
+  window.addEventListener('resize', reportDisplayInfo);
 
   socket.on('config:update', (config) => {
     renderConfig(config);

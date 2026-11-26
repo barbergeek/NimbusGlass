@@ -2,6 +2,7 @@
   "theme": "vibrant-dark",
   "orientation": "landscape",
   "rotation": 0,
+  "scale": 100,
   "dimming": {
     "enabled": true,
     "start": "22:00",
