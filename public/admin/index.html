@@ -31,12 +31,9 @@
     <h2>Display</h2>
     <div class="field">
       <label for="theme-select">Theme</label>
-      <select id="theme-select">
-        <option value="vibrant-dark">Vibrant Dark</option>
-        <option value="vibrant-light">Vibrant Light</option>
-        <option value="mono">Mono</option>
-      </select>
+      <select id="theme-select"></select>
     </div>
+    <p class="hint" id="theme-hint"></p>
     <div class="field">
       <label for="orientation-select">Orientation</label>
       <select id="orientation-select">
@@ -147,6 +144,7 @@
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/themes.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

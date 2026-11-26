@@ -382,6 +382,43 @@
     host.appendChild(list);
   }
 
+  /** Theme picker options, grouped, built from the shared catalog in /js/themes.js. */
+  function buildThemeOptions() {
+    const select = document.getElementById('theme-select');
+    const auto = document.createElement('optgroup');
+    auto.label = 'Automatic';
+    const seasonal = document.createElement('option');
+    seasonal.value = NimbusThemes.SEASONAL;
+    seasonal.textContent = NimbusThemes.labelOf(NimbusThemes.SEASONAL);
+    auto.appendChild(seasonal);
+    select.appendChild(auto);
+
+    const groups = new Map();
+    for (const theme of NimbusThemes.THEMES) {
+      if (!groups.has(theme.group)) {
+        const group = document.createElement('optgroup');
+        group.label = theme.group;
+        groups.set(theme.group, group);
+        select.appendChild(group);
+      }
+      const option = document.createElement('option');
+      option.value = theme.id;
+      option.textContent = theme.label;
+      groups.get(theme.group).appendChild(option);
+    }
+  }
+
+  function renderThemeHint(config) {
+    const hint = document.getElementById('theme-hint');
+    if (config.theme !== NimbusThemes.SEASONAL) {
+      hint.textContent = '';
+      return;
+    }
+    const lat = config.location && config.location.lat;
+    const today = NimbusThemes.resolve(config.theme, new Date(), lat);
+    hint.textContent = `Changes with the seasons, plus holiday themes in the days leading up to Valentine's Day, St. Patrick's Day, July 4th, Halloween, Thanksgiving, and through December. Showing ${NimbusThemes.labelOf(today)} today.`;
+  }
+
   function renderDimMethodStatus(dimming) {
     const el = document.getElementById('dimming-method-status');
     fetch('/api/display')
@@ -422,6 +459,7 @@
     updatePreview(config);
 
     document.getElementById('theme-select').value = config.theme;
+    renderThemeHint(config);
     document.getElementById('orientation-select').value = config.orientation;
 
     // Chrome fires `change` on time inputs per segment (hour, then minute),
@@ -483,6 +521,7 @@
     if (currentConfig) updatePreview(currentConfig);
   });
 
+  buildThemeOptions();
   document.getElementById('theme-select').addEventListener('change', (e) => send({ theme: e.target.value }));
   document.getElementById('orientation-select').addEventListener('change', (e) => send({ orientation: e.target.value }));
 

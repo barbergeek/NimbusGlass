@@ -39,11 +39,27 @@
     }
   }
 
+  // config.theme is a theme id, or "seasonal" - resolved here (and
+  // re-checked hourly) to the holiday or season in effect today. See
+  // public/js/themes.js.
+  let themeSetting = null;
+  let themeLat = null;
+
+  function applyTheme() {
+    const theme = NimbusThemes.resolve(themeSetting, new Date(), themeLat);
+    if (document.body.dataset.theme === theme) return;
+    document.body.dataset.theme = theme;
+    document.documentElement.dataset.theme = theme;
+  }
+
+  setInterval(applyTheme, 60 * 60 * 1000);
+
   function renderConfig(config) {
     teardown();
 
-    document.body.dataset.theme = config.theme;
-    document.documentElement.dataset.theme = config.theme;
+    themeSetting = config.theme;
+    themeLat = config.location && config.location.lat;
+    applyTheme();
     document.body.dataset.orientation = config.orientation || 'landscape';
     const scalePercent = Math.min(100, Math.max(50, Number(config.scale) || 100));
     grid.style.setProperty('--display-scale', String(scalePercent / 100));

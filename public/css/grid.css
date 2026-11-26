@@ -118,3 +118,12 @@ body[data-orientation='portrait'] .columns-row {
   z-index: 1000;
   transition: opacity 3s ease;
 }
+
+/*
+  Right-hand zones mirror the left: card content hugs the right edge, the
+  same way the left column's hugs the left. Modules with their own row
+  layouts opt in below in modules.css.
+*/
+.zone[data-zone$='-right'] .module-card {
+  text-align: right;
+}

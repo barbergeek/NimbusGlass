@@ -115,6 +115,10 @@
   overflow-wrap: anywhere;
 }
 
+.zone[data-zone$='-right'] .weather-module .weather-current {
+  justify-content: flex-end;
+}
+
 .weather-module .weather-forecast {
   display: flex;
   gap: 14px;
