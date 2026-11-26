@@ -5,6 +5,13 @@
     'English Premier League': 'EPL',
   };
 
+  // Game data comes from ESPN (via the server) and league names from
+  // config, which any device on the network can set - escape all of it
+  // before it goes into innerHTML.
+  function esc(str) {
+    return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
   function isGameFavorite(game, favorites) {
     return favorites.includes(game.home.abbreviation) || favorites.includes(game.away.abbreviation);
   }
@@ -12,7 +19,7 @@
   // Scoreboard images only - hide a dead/renamed logo URL rather than
   // showing a broken-image icon on the kiosk display.
   function teamLogo(team) {
-    return team.logo ? `<img class="score-logo" src="${team.logo}" alt="" onerror="this.style.display='none'">` : '';
+    return team.logo ? `<img class="score-logo" src="${esc(team.logo)}" alt="" onerror="this.style.display='none'">` : '';
   }
 
   function gameCard(game, favorite) {
@@ -22,16 +29,16 @@
       <div class="score-card${favorite ? ' favorite' : ''}">
         <div class="score-teams">
           ${teamLogo(game.away)}
-          <span class="score-team${awayWin ? ' winner' : ''}">${game.away.abbreviation}</span>
-          <span class="score-value">${game.away.score ?? '-'}</span>
+          <span class="score-team${awayWin ? ' winner' : ''}">${esc(game.away.abbreviation)}</span>
+          <span class="score-value">${esc(game.away.score ?? '-')}</span>
           <span class="score-sep">–</span>
-          <span class="score-value">${game.home.score ?? '-'}</span>
-          <span class="score-team${homeWin ? ' winner' : ''}">${game.home.abbreviation}</span>
+          <span class="score-value">${esc(game.home.score ?? '-')}</span>
+          <span class="score-team${homeWin ? ' winner' : ''}">${esc(game.home.abbreviation)}</span>
           ${teamLogo(game.home)}
         </div>
         <div class="score-meta">
-          <span class="score-status">${game.statusDetail}</span>
-          ${game.broadcast ? `<span class="score-network">${game.broadcast}</span>` : ''}
+          <span class="score-status">${esc(game.statusDetail)}</span>
+          ${game.broadcast ? `<span class="score-network">${esc(game.broadcast)}</span>` : ''}
         </div>
       </div>
     `;
@@ -53,7 +60,7 @@
       : '';
 
     section.innerHTML = `
-      <div class="scoreboard-league-name">${label}</div>
+      <div class="scoreboard-league-name">${esc(label)}</div>
       ${pinnedHtml}
       ${restHtml}
     `;

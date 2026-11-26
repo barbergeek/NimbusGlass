@@ -1,5 +1,5 @@
 (function () {
-  const ICON_URL = (icon) => `https://openweathermap.org/img/wn/${icon}@2x.png`;
+  const ICON_URL = (icon) => `https://openweathermap.org/img/wn/${encodeURIComponent(icon)}@2x.png`;
 
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -7,17 +7,20 @@
 
   function render(container, data) {
     if (data.error) {
-      container.innerHTML = `<div class="weather-condition">Weather unavailable: ${data.error}</div>`;
+      container.innerHTML = `<div class="weather-condition">Weather unavailable: ${escapeHtml(data.error)}</div>`;
       return;
     }
     const { current, forecast, location } = data;
+    // Everything below comes from the upstream weather API via the server -
+    // escape it all before it goes into innerHTML.
+    const esc = escapeHtml;
     container.innerHTML = `
       ${location ? `<div class="weather-location">${escapeHtml(location)}</div>` : ''}
       <div class="weather-current">
-        <img src="${ICON_URL(current.icon)}" alt="${current.condition}" class="weather-icon-current" />
+        <img src="${esc(ICON_URL(current.icon))}" alt="${esc(current.condition)}" class="weather-icon-current" />
         <div>
-          <div class="weather-temp">${current.temp}&deg;</div>
-          <div class="weather-condition">${current.condition} · feels ${current.feelsLike}&deg;</div>
+          <div class="weather-temp">${esc(current.temp)}&deg;</div>
+          <div class="weather-condition">${esc(current.condition)} · feels ${esc(current.feelsLike)}&deg;</div>
         </div>
       </div>
       <div class="weather-forecast">
@@ -25,9 +28,9 @@
           .map(
             (day) => `
           <div class="forecast-day">
-            <div>${new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' })}</div>
-            <img src="${ICON_URL(day.icon)}" alt="${day.summary}" class="weather-icon-forecast" />
-            <div><span class="hi">${day.high}&deg;</span> / <span class="lo">${day.low}&deg;</span></div>
+            <div>${esc(new Date(day.date).toLocaleDateString(undefined, { weekday: 'short' }))}</div>
+            <img src="${esc(ICON_URL(day.icon))}" alt="${esc(day.summary)}" class="weather-icon-forecast" />
+            <div><span class="hi">${esc(day.high)}&deg;</span> / <span class="lo">${esc(day.low)}&deg;</span></div>
           </div>`
           )
           .join('')}
