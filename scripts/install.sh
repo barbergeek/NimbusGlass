@@ -55,7 +55,10 @@ confirm() {
 [ "$EUID" -ne 0 ] || die "Run this as your normal user (not root/sudo) - it calls sudo itself where needed."
 command -v apt-get >/dev/null 2>&1 || die "This installer targets Raspberry Pi OS / Debian-based systems (no apt-get found)."
 [ -f /etc/os-release ] || die "Can't find /etc/os-release - unsupported OS."
-sudo -v || die "Need sudo access to install packages and system services."
+# `sudo true`, not `sudo -v`: with verifypw=all (the default), -v demands a
+# password if *any* sudoers entry needs one - e.g. Pi OS's NOPASSWD rule
+# alongside the sudo group's ALL rule - which fails non-interactively.
+sudo true || die "Need sudo access to install packages and system services."
 
 # --- detect hardware and OS --------------------------------------------
 
@@ -167,7 +170,7 @@ if ! $SKIP_KIOSK; then
       ;;
     wayland)
       sudo apt-get install -y --no-install-recommends \
-        labwc seatd "$BROWSER_PKG" curl unclutter
+        labwc seatd wlr-randr "$BROWSER_PKG" curl unclutter
       ;;
   esac
 else
@@ -230,17 +233,19 @@ fi
 
 append_tty1_trigger() {
   local marker="$1" check_var="$2" exec_cmd="$3"
-  if ! grep -qF "$marker" "$HOME/.bash_profile" 2>/dev/null; then
-    cat <<EOF >> "$HOME/.bash_profile"
+  # Drop any existing block first (marker line through its closing `fi`), so
+  # a re-run with a different --display-stack replaces the old exec rather
+  # than leaving it in place.
+  if grep -qxF "$marker" "$HOME/.bash_profile" 2>/dev/null; then
+    sed -i "\\|^${marker}\$|,/^fi\$/d" "$HOME/.bash_profile"
+  fi
+  cat <<EOF >> "$HOME/.bash_profile"
 $marker
 if [ -z "\${$check_var:-}" ] && [ "\$(tty)" = "/dev/tty1" ]; then
   exec $exec_cmd
 fi
 EOF
-    log "Added $exec_cmd autostart to ~/.bash_profile."
-  else
-    log "~/.bash_profile already has the NimbusGlass autostart block."
-  fi
+  log "Wrote $exec_cmd autostart block to ~/.bash_profile."
 }
 
 if ! $SKIP_KIOSK; then
