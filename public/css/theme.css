@@ -4,12 +4,27 @@
   is enough to re-skin the whole mirror with no JS changes to modules.
 */
 
+/* Bundled, not system, font: the Pi and whatever browser shows the /admin
+   preview would otherwise each fall back to a different installed font
+   (DejaVu Sans vs. Segoe UI/Helvetica/...) with different widths, so text
+   would wrap and align differently between preview and panel. Served
+   locally - the mirror doesn't need internet access for it. Inter is
+   SIL OFL 1.1 (fonts/inter/OFL.txt), Latin subset, variable weight. */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/inter/inter-latin-wght-normal.woff2') format('woff2-variations'),
+       url('/fonts/inter/inter-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 :root {
-  --font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;
   --radius: 14px;
   --gap: 12px;
 }

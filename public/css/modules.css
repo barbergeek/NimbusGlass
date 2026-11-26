@@ -7,13 +7,14 @@
 
 .clock-module .clock-time {
   /* Full size when there's room; on a narrow panel, shrink just enough
-     that the widest time ("12:58 PM", ~5.25em in DejaVu Sans, the Pi's
-     default font) still fits on one line. */
+     that the widest time ("12:58 PM", ~5em in Inter) still fits on one
+     line. */
   font-size: min(3.4rem, 18cqi);
   font-weight: 600;
   color: var(--accent-2);
   line-height: 1;
   white-space: nowrap; /* "12:58 PM" must stay on one line */
+  font-variant-numeric: tabular-nums; /* digits don't shift as the time ticks */
 }
 
 .clock-module .clock-date {
