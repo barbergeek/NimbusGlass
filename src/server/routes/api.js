@@ -2,6 +2,8 @@
 
 const express = require('express');
 const configStore = require('../configStore');
+const backlight = require('../backlight');
+const rotation = require('../rotation');
 const { fetchWeather } = require('../providers/weather');
 const { fetchScores } = require('../providers/sports');
 const { fetchHolidays } = require('../providers/holidays');
@@ -18,6 +20,19 @@ function buildApiRouter() {
   router.post('/config', (req, res) => {
     const updated = configStore.update(req.body);
     res.json(updated);
+  });
+
+  // Hardware display state: what's dimming the display (backlight vs.
+  // on-screen overlay - the display page reads this to decide whether to
+  // draw its overlay) and the last screen-rotation result.
+  router.get('/display', (req, res) => {
+    res.json({ ...backlight.status(), rotation: rotation.status() });
+  });
+
+  // Re-apply config.rotation to the running compositor. Called by
+  // scripts/kiosk-start.sh each time the kiosk session starts.
+  router.post('/display/rotation', async (req, res) => {
+    res.json(await rotation.apply());
   });
 
   router.get('/weather', async (req, res) => {

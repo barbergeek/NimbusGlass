@@ -8,6 +8,8 @@ const express = require('express');
 
 const { buildApiRouter } = require('./routes/api');
 const { attachWebsocket } = require('./websocket');
+const backlight = require('./backlight');
+const rotation = require('./rotation');
 
 const PORT = process.env.PORT || 3000;
 const PUBLIC_DIR = path.join(__dirname, '..', '..', 'public');
@@ -38,6 +40,8 @@ app.use(express.static(PUBLIC_DIR));
 
 const httpServer = http.createServer(app);
 attachWebsocket(httpServer);
+backlight.start();
+rotation.start();
 
 // Bind 0.0.0.0, not localhost: the mirror's Chromium kiosk and any phone/
 // laptop on the same VLAN both need to reach this.

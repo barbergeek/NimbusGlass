@@ -51,13 +51,15 @@ NimbusGlass/
 │   ├── websocket.js               # Socket.IO: config:update / config:set
 │   ├── configStore.js              # load/merge/persist data/config.json
 │   ├── cache.js                    # in-memory TTL cache for upstream fetches
+│   ├── backlight.js                # overnight dimming via /sys/class/backlight, when the panel has one
+│   ├── rotation.js                 # screen rotation via wlr-randr (Wayland) / xrandr (X11)
 │   ├── providers/
 │   │   ├── weather.js                 # OpenWeatherMap current + 3-day forecast
 │   │   ├── holidays.js                 # date.nager.at upcoming public holidays
 │   │   ├── sports.js                  # ESPN scoreboard fetch, league path map
 │   │   └── teams.js                    # ESPN team rosters, for the /admin team picker
 │   └── routes/
-│       └── api.js                      # /api/config, /api/weather, /api/holidays, /api/scores, /api/teams/:league
+│       └── api.js                      # /api/config, /api/weather, /api/holidays, /api/scores, /api/teams/:league, /api/display
 ├── public/                       # the mirror display itself
 │   ├── index.html
 │   ├── css/
@@ -66,6 +68,7 @@ NimbusGlass/
 │   │   └── modules.css              # per-module styling
 │   ├── js/
 │   │   ├── app.js                  # renders zones/modules from config, socket client
+│   │   ├── dimSchedule.js           # overnight dimming schedule, shared with the server
 │   │   └── modules/
 │   │       ├── clock.js
 │   │       ├── holidays.js

@@ -83,5 +83,37 @@
     }
   }
 
-  socket.on('config:update', renderConfig);
+  // --- overnight dimming ---------------------------------------------------
+  //
+  // Schedule logic lives in dimSchedule.js, shared with the server. When the
+  // panel has a hardware backlight, the server dims that instead
+  // (src/server/backlight.js) and this overlay stays clear; /api/display
+  // says which method is in effect.
+  const dimOverlay = document.getElementById('dim-overlay');
+  let dimming = null;
+  let overlayActive = true; // until /api/display says otherwise
+
+  function applyDimming() {
+    const percent = overlayActive ? NimbusDimSchedule.targetBrightness(dimming, new Date()) : 100;
+    dimOverlay.style.opacity = String(1 - percent / 100);
+  }
+
+  function refreshDimMethod() {
+    fetch('/api/display')
+      .then((res) => res.json())
+      .then((status) => {
+        overlayActive = status.method !== 'backlight';
+        applyDimming();
+      })
+      .catch(() => {}); // keep the last known method
+  }
+
+  setInterval(applyDimming, 30 * 1000);
+
+  socket.on('config:update', (config) => {
+    renderConfig(config);
+    dimming = config.dimming;
+    applyDimming();
+    refreshDimMethod();
+  });
 })();

@@ -20,6 +20,7 @@ const LEAGUE_PATHS = {
 const NCAA_GROUPS = {
   NCAAF: 80,
   NCAAM: 50,
+  NCAAW: 50,
 };
 
 module.exports = { LEAGUE_PATHS, NCAA_GROUPS };

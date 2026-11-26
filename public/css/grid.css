@@ -88,3 +88,19 @@ body[data-orientation='portrait'] .columns-row {
 .zone[data-zone='bottom-bar'] .module-card {
   padding: 10px 20px;
 }
+
+/*
+  Overnight dimming (config.dimming, driven from app.js): a black layer over
+  the whole display whose opacity is 1 - brightness. Sits outside
+  #mirror-grid so config re-renders never tear it down, and ignores
+  pointer events so it never blocks the touchscreen.
+*/
+#dim-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1000;
+  transition: opacity 3s ease;
+}

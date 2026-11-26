@@ -1,6 +1,14 @@
 {
   "theme": "vibrant-dark",
   "orientation": "landscape",
+  "rotation": 0,
+  "dimming": {
+    "enabled": true,
+    "start": "22:00",
+    "end": "07:00",
+    "brightness": 40,
+    "method": "auto"
+  },
   "location": {
     "city": "Columbus,OH,US",
     "lat": null,
@@ -64,7 +72,9 @@
           "MLB": { "enabled": true, "favorites": [], "conferences": [] },
           "English Premier League": { "enabled": true, "favorites": [], "conferences": [] },
           "NCAAF": { "enabled": true, "favorites": [], "conferences": [] },
-          "NCAAM": { "enabled": false, "favorites": [], "conferences": [] }
+          "NCAAM": { "enabled": false, "favorites": [], "conferences": [] },
+          "NCAAW": { "enabled": false, "favorites": [], "conferences": [] },
+          "MLS": { "enabled": false, "favorites": [], "conferences": [] }
         },
         "rotateSeconds": 8,
         "refreshMinutes": 2

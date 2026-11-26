@@ -3,7 +3,7 @@
   const statusEl = document.getElementById('status');
 
   // Mirrors the keys supported by src/server/providers/sports.js LEAGUE_PATHS.
-  const AVAILABLE_LEAGUES = ['NFL', 'NHL', 'MLB', 'English Premier League', 'NCAAF', 'NCAAM'];
+  const AVAILABLE_LEAGUES = ['NFL', 'NHL', 'MLB', 'NCAAF', 'NCAAM', 'NCAAW', 'English Premier League', 'MLS'];
 
   let currentConfig = null;
   let activeLeague = AVAILABLE_LEAGUES[0];
@@ -372,6 +372,26 @@
     host.appendChild(list);
   }
 
+  function renderDimMethodStatus(dimming) {
+    const el = document.getElementById('dimming-method-status');
+    fetch('/api/display')
+      .then((res) => res.json())
+      .then((status) => {
+        if (status.method === 'backlight') {
+          el.textContent = `Dimming the screen backlight (${status.device}).`;
+        } else if ((dimming.method || 'auto') === 'backlight') {
+          el.textContent = 'No controllable backlight found on this display - using the on-screen overlay instead.';
+        } else if (status.available) {
+          el.textContent = `Using the on-screen overlay. This display also has a controllable backlight (${status.device}).`;
+        } else {
+          el.textContent = 'Using the on-screen overlay - no controllable backlight found on this display.';
+        }
+      })
+      .catch(() => {
+        el.textContent = '';
+      });
+  }
+
   function renderForm(config) {
     currentConfig = config;
 
@@ -379,6 +399,27 @@
 
     document.getElementById('theme-select').value = config.theme;
     document.getElementById('orientation-select').value = config.orientation;
+
+    // Chrome fires `change` on time inputs per segment (hour, then minute),
+    // so the server echo arrives mid-edit - don't overwrite a field the
+    // user is still typing in.
+    const dimming = config.dimming || {};
+    const setUnlessFocused = (id, value) => {
+      const el = document.getElementById(id);
+      if (el !== document.activeElement) el.value = value;
+    };
+    document.getElementById('dimming-enabled').checked = !!dimming.enabled;
+    setUnlessFocused('dimming-start', dimming.start || '22:00');
+    setUnlessFocused('dimming-end', dimming.end || '07:00');
+    setUnlessFocused('dimming-brightness', dimming.brightness || 40);
+    document.getElementById('dimming-brightness-value').textContent = dimming.brightness || 40;
+    document.getElementById('dimming-method').value = dimming.method || 'auto';
+    for (const id of ['dimming-start', 'dimming-end', 'dimming-brightness', 'dimming-method']) {
+      document.getElementById(id).disabled = !dimming.enabled;
+    }
+    renderDimMethodStatus(dimming);
+
+    document.getElementById('rotation-select').value = String(config.rotation || 0);
 
     document.getElementById('location-city').value = config.location.city || '';
     document.getElementById('location-country').value = config.location.country || '';
@@ -401,6 +442,41 @@
 
   document.getElementById('theme-select').addEventListener('change', (e) => send({ theme: e.target.value }));
   document.getElementById('orientation-select').addEventListener('change', (e) => send({ orientation: e.target.value }));
+
+  document.getElementById('rotation-select').addEventListener('change', (e) => {
+    send({ rotation: Number(e.target.value) });
+    // The server applies it asynchronously; report the result (e.g. a
+    // missing wlr-randr) once it's had a moment.
+    setTimeout(() => {
+      fetch('/api/display')
+        .then((res) => res.json())
+        .then(({ rotation }) => {
+          if (rotation && rotation.ok === false) {
+            document.getElementById('rotation-status').textContent = rotation.message;
+          }
+        })
+        .catch(() => {});
+    }, 2500);
+  });
+
+  document.getElementById('dimming-enabled').addEventListener('change', (e) =>
+    send({ dimming: { enabled: e.target.checked } })
+  );
+  for (const [id, key] of [['dimming-start', 'start'], ['dimming-end', 'end']]) {
+    document.getElementById(id).addEventListener('change', (e) => {
+      if (e.target.value) send({ dimming: { [key]: e.target.value } });
+    });
+  }
+  document.getElementById('dimming-method').addEventListener('change', (e) =>
+    send({ dimming: { method: e.target.value } })
+  );
+  const brightnessInput = document.getElementById('dimming-brightness');
+  brightnessInput.addEventListener('input', () => {
+    document.getElementById('dimming-brightness-value').textContent = brightnessInput.value;
+  });
+  brightnessInput.addEventListener('change', () =>
+    send({ dimming: { brightness: Number(brightnessInput.value) } })
+  );
 
   document.getElementById('location-city').addEventListener('change', (e) =>
     send({ location: { city: e.target.value } })

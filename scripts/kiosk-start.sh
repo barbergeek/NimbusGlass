@@ -19,6 +19,10 @@ for _ in $(seq 1 30); do
   sleep 1
 done
 
+# Apply the configured screen rotation (/admin -> Display). The compositor
+# resets it on every start, so it has to be re-applied each session.
+curl -fs -X POST "$URL/api/display/rotation" > /dev/null 2>&1 || true
+
 # Raspberry Pi OS Bookworm (Debian 12-based) packages the browser as
 # "chromium" (/usr/bin/chromium); older Debian/Ubuntu-based images used
 # "chromium-browser". Support both rather than hardcoding one.

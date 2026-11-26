@@ -44,6 +44,45 @@
         <option value="portrait">Portrait</option>
       </select>
     </div>
+    <div class="field">
+      <label for="rotation-select">Screen rotation</label>
+      <select id="rotation-select">
+        <option value="0">Normal</option>
+        <option value="180">Upside down (180°)</option>
+        <option value="90">90°</option>
+        <option value="270">270°</option>
+      </select>
+    </div>
+    <p class="hint" id="rotation-status">Rotates the physical screen. For 90° or 270°, set Orientation to Portrait too.</p>
+
+    <h3 class="panel-subheading">Overnight dimming</h3>
+    <label class="row">
+      <input type="checkbox" id="dimming-enabled" class="toggle" />
+      <span style="flex: 1;">Dim the mirror overnight</span>
+    </label>
+    <div class="row">
+      <div class="field" style="flex: 1;">
+        <label for="dimming-start">Dim at</label>
+        <input type="time" id="dimming-start" />
+      </div>
+      <div class="field" style="flex: 1;">
+        <label for="dimming-end">Brighten at</label>
+        <input type="time" id="dimming-end" />
+      </div>
+    </div>
+    <div class="field">
+      <label for="dimming-brightness">Brightness while dimmed: <span id="dimming-brightness-value"></span>%</label>
+      <input type="range" id="dimming-brightness" min="5" max="90" step="5" />
+    </div>
+    <div class="field">
+      <label for="dimming-method">Dim using</label>
+      <select id="dimming-method">
+        <option value="auto">Automatic (screen backlight if available)</option>
+        <option value="backlight">Screen backlight</option>
+        <option value="overlay">On-screen overlay</option>
+      </select>
+    </div>
+    <p class="hint" id="dimming-method-status"></p>
   </div>
 
   <div class="card">
