@@ -1,4 +1,4 @@
-# labwc (Wayland) kiosk autostart - the Pi 4/5 + Bookworm-or-newer default -
+# labwc (Wayland) kiosk autostart - the Bookworm-or-newer default -
 # installed to ~/.config/labwc/autostart by scripts/install.sh (see
 # docs/KIOSK_SETUP.md for the manual equivalent).
 

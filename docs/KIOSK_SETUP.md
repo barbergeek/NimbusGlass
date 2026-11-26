@@ -12,18 +12,19 @@ troubleshooting if something doesn't come up.
 
 ## Which display stack gets used, and why
 
-| Board            | OS release           | Stack           |
-|-------------------|----------------------|------------------|
-| Pi 3 / Pi 2        | any                   | X11 + Openbox    |
-| Pi 4 / Pi 5         | Bullseye or older      | X11 + Openbox    |
-| Pi 4 / Pi 5         | Bookworm or newer       | labwc (Wayland)  |
+| OS release           | Stack           |
+|----------------------|------------------|
+| Bookworm or newer     | labwc (Wayland)  |
+| Bullseye or older      | X11 + Openbox    |
 
-X11 + Openbox is the lighter, more reliably-supported path on older boards
-and older OS releases that predate labwc. On a Pi 4/5 running Bookworm+,
-labwc is the OS's own default compositor and where current GPU driver work
-actually lands, so the kiosk uses that instead rather than fighting it.
+On Bookworm and newer, labwc is the OS's own default compositor on every
+Pi model (Pi 2/3 included) and where current GPU driver work actually
+lands, so the kiosk uses it rather than fighting it. X11 isn't a safe
+fallback there: on a Pi 3B+ running Trixie with the official 7" DSI
+touchscreen, Xorg never finished starting, while labwc worked fine.
+Bullseye and older predate labwc, so they get X11 + Openbox.
 Override with `--display-stack=x11` or `--display-stack=wayland` if you
-want something other than the default for your board/OS combination.
+want something other than the default.
 
 Either way, the browser package name is detected automatically: Bookworm+
 calls it `chromium`; Bullseye and older called it `chromium-browser`.
@@ -102,7 +103,7 @@ node -v   # expect v20.x; anything >=18 is fine, skip this step if already satis
 
 ### Install the kiosk display stack
 
-**X11 + Openbox** (Pi 2/3 on any OS, or Pi 4/5 on Bullseye-or-older):
+**X11 + Openbox** (Bullseye or older):
 
 ```bash
 sudo apt install -y --no-install-recommends \
@@ -110,10 +111,10 @@ sudo apt install -y --no-install-recommends \
   chromium curl unclutter
 ```
 
-**labwc / Wayland** (Pi 4/5 on Bookworm-or-newer):
+**labwc / Wayland** (Bookworm or newer):
 
 ```bash
-sudo apt install -y --no-install-recommends labwc seatd chromium curl unclutter
+sudo apt install -y --no-install-recommends labwc seatd wlr-randr chromium curl unclutter
 ```
 
 For either: if `apt install chromium` 404s, your image is old enough that

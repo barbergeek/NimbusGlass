@@ -86,22 +86,21 @@ fi
 
 # --- pick a kiosk display stack -----------------------------------------
 #
-# Pi 3/2 and anything on Bullseye or older: X11 + Openbox. It's the
-# lighter, more reliably-driver-supported path on older boards and older
-# OS releases that predate labwc.
+# Bookworm or newer, any board: labwc (Wayland). It's the OS's own default
+# compositor on every Pi model, and where KMS driver work upstream lands.
+# X11 is NOT a safe fallback there: on a Pi 3B+ running Trixie with the
+# official DSI touchscreen, Xorg never finished starting (it spun in an
+# input-hotplug loop), while labwc on the same board works.
 #
-# Pi 4/5 on Bookworm or newer: labwc (Wayland), matching the OS's own
-# default compositor and driver stack, which is where KMS/GL driver work
-# upstream actually lands on current Pi OS.
+# Bullseye or older: X11 + Openbox, since those releases predate labwc.
 
 if [ -n "$DISPLAY_STACK_OVERRIDE" ]; then
   DISPLAY_STACK="$DISPLAY_STACK_OVERRIDE"
-elif [ "$PI_GEN" = "2" ] || [ "$PI_GEN" = "3" ]; then
-  DISPLAY_STACK=x11
-elif [ "$OS_CODENAME" = "bullseye" ] || [ "$OS_CODENAME" = "buster" ]; then
-  DISPLAY_STACK=x11
 else
-  DISPLAY_STACK=wayland
+  case "$OS_CODENAME" in
+    buster|bullseye) DISPLAY_STACK=x11 ;;
+    *) DISPLAY_STACK=wayland ;;
+  esac
 fi
 
 case "$DISPLAY_STACK" in

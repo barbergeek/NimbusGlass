@@ -39,8 +39,8 @@ NimbusGlass/
 │   └── config.json              # live, mutable config (gitignored)
 ├── deploy/
 │   ├── nimbusglass.service      # systemd unit template (__PLACEHOLDER__ tokens)
-│   ├── openbox-autostart         # kiosk autostart template, X11/Openbox (Pi 2/3, or Bullseye-)
-│   └── labwc-autostart            # kiosk autostart template, labwc/Wayland (Pi 4/5 + Bookworm+)
+│   ├── openbox-autostart         # kiosk autostart template, X11/Openbox (Bullseye or older)
+│   └── labwc-autostart            # kiosk autostart template, labwc/Wayland (Bookworm or newer, the default)
 ├── docs/
 │   └── KIOSK_SETUP.md           # Pi OS Lite -> booted kiosk, step by step
 ├── scripts/
