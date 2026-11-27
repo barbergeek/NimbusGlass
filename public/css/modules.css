@@ -89,6 +89,11 @@
 
 /* OpenWeatherMap's icons carry a lot of transparent padding, so they're
    sized larger than they look. */
+.weather-module .weather-icon-current,
+.weather-module .weather-icon-forecast {
+  filter: var(--icon-filter, none);
+}
+
 .weather-module .weather-icon-current {
   width: 84px;
   height: 84px;
