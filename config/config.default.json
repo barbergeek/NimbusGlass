@@ -80,6 +80,7 @@
         "upcomingDays": 7,
         "rolloverHours": 12,
         "rotateSeconds": 8,
+        "maxRows": 3,
         "refreshMinutes": 2
       }
     }

@@ -32,8 +32,8 @@
 /*
   Every theme sets the same variables. Accent roles, so a new theme stays
   readable: --accent-2 is the clock (keep it the brightest), --accent-4 the
-  temperature and scores, --accent-1 holiday dates and forecast highs,
-  --accent-3 favorite-team markers and winners. --bg-glow is an optional
+  temperature and scores, --accent-1 holiday dates, forecast highs and
+  favorite teams on the scoreboard, --accent-3 secondary highlights. --bg-glow is an optional
   soft background gradient; keep it faint, the panel is often viewed in a
   dark room.
 */

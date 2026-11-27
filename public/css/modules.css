@@ -140,93 +140,110 @@
 .weather-module .forecast-day .hi { color: var(--accent-1); font-weight: 600; }
 .weather-module .forecast-day .lo { color: var(--text-secondary); }
 
-/* --- Scoreboard --- */
+/* --- Scoreboard ---
+   A table, one game per line, several columns of games side by side.
+   Each .scoreboard-column is a 5-track grid (league, away team, score,
+   home team, status) and every row is a subgrid of it, so team names,
+   scores and statuses line up down the column whatever their widths. */
 .scoreboard-module {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
   width: 100%;
 }
 
-.scoreboard-league {
-  display: flex;
+.scoreboard-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--score-cols, 1), minmax(0, 1fr));
+  column-gap: 10px;
+  align-items: start;
+  transition: opacity 350ms ease;
+}
+
+.scoreboard-grid.turning {
+  opacity: 0;
+}
+
+.scoreboard-column {
+  display: grid;
+  grid-template-columns: auto auto auto auto minmax(0, 1fr);
+  row-gap: 5px;
+  min-width: 0;
+}
+
+.score-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: 14px;
-  min-width: 0;
-}
-
-.scoreboard-league-name {
-  flex: 0 0 auto;
-  color: var(--accent-2);
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  white-space: nowrap;
-}
-
-.scoreboard-pinned {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  flex: 0 0 auto; /* never shrinks or scrolls off - favorites always stay on screen */
-}
-
-.scoreboard-games {
-  display: flex;
-  gap: 14px;
-  flex: 1;
-  min-width: 0;
-  overflow-x: auto;
-  scrollbar-width: none; /* kiosk display - nobody's scrolling this by hand */
-}
-
-.scoreboard-games::-webkit-scrollbar {
-  display: none;
-}
-
-.score-card {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 5px 12px;
+  column-gap: 6px;
+  padding: 3px 8px;
   background: var(--surface);
-  border-radius: 8px;
-  border-left: 3px solid transparent;
+  border-radius: 6px;
   white-space: nowrap;
+  font-size: 1.1rem;
+  line-height: 1.35;
 }
 
-.score-card.favorite {
-  border-left-color: var(--accent-3);
+.score-row.filler {
+  visibility: hidden;
 }
 
-.score-teams {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 1.15rem;
-}
+.score-row.yesterday { opacity: 0.75; } /* last night's finals - present, but quieter than today's */
 
 .score-logo {
-  width: 1.3em;
-  height: 1.3em;
+  width: 1.05em;
+  height: 1.05em;
   object-fit: contain;
   flex: 0 0 auto;
 }
 
-.score-team { color: var(--text-primary); font-weight: 600; }
-.score-team.winner { color: var(--accent-3); }
-.score-value { color: var(--accent-4); font-weight: 700; min-width: 1.3em; text-align: center; }
-.score-sep { color: var(--text-secondary); }
-
-.score-meta {
+.score-team {
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.score-team.away { justify-self: end; }
+.score-team.home { justify-self: start; }
+/* Your teams stand out by color; a finished game's loser fades back. */
+.score-team.fav { color: var(--accent-1); font-weight: 700; }
+.score-team.loser { opacity: 0.55; }
+
+.score-value {
+  justify-self: center;
+  color: var(--accent-4);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.7em;
+  text-align: center;
 }
 
-.score-status { color: var(--text-secondary); font-size: 0.9rem; }
-.score-when { color: var(--text-secondary); font-size: 0.9rem; font-weight: 600; }
-.score-league-tag { color: var(--accent-2); font-size: 0.9rem; font-weight: 700; }
-.score-card.yesterday { opacity: 0.75; } /* last night's finals - present, but quieter than today's */
-.score-network { color: var(--accent-2); font-size: 0.9rem; }
+.score-sep { color: var(--text-secondary); padding: 0 0.1em; font-weight: 400; }
+
+.score-league-tag {
+  color: var(--accent-2);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.score-status {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  display: flex;
+  gap: 0.35em;
+  min-width: 0;
+  padding-left: 2px;
+}
+
+/* The status (time, score clock, Final) never gets cut off; the network
+   name gives way first. */
+.score-status-text { flex: 0 0 auto; }
+.score-network {
+  color: var(--accent-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.score-row.live .score-status-text { color: var(--accent-1); font-weight: 600; }
+

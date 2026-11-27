@@ -497,6 +497,7 @@
     const scoreboardSettings = config.modules.scoreboard.settings;
     document.getElementById('scoreboard-upcoming').value = scoreboardSettings.upcomingDays ?? 7;
     document.getElementById('scoreboard-rollover').value = String(scoreboardSettings.rolloverHours ?? 12);
+    document.getElementById('scoreboard-rows').value = scoreboardSettings.maxRows ?? 3;
 
     renderModuleRows(config);
     renderLeagueTabs(config);
@@ -594,6 +595,10 @@
   document.getElementById('scoreboard-rotate').addEventListener('change', (e) =>
     send({ modules: { scoreboard: { settings: { rotateSeconds: Number(e.target.value) } } } })
   );
+  document.getElementById('scoreboard-rows').addEventListener('change', (e) => {
+    const rows = Math.min(10, Math.max(1, Math.round(Number(e.target.value) || 3)));
+    send({ modules: { scoreboard: { settings: { maxRows: rows } } } });
+  });
 
   // Server pushes the current config on connect, and again on every change
   // (including ones made from this very form) - that round trip is what
