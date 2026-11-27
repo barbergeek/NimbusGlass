@@ -154,11 +154,6 @@
   grid-template-columns: repeat(var(--score-cols, 1), minmax(0, 1fr));
   column-gap: 10px;
   align-items: start;
-  transition: opacity 350ms ease;
-}
-
-.scoreboard-grid.turning {
-  opacity: 0;
 }
 
 .scoreboard-column {
@@ -180,13 +175,11 @@
   white-space: nowrap;
   font-size: 1.1rem;
   line-height: 1.35;
-}
-
-.score-row.filler {
-  visibility: hidden;
+  transition: opacity 350ms ease;
 }
 
 .score-row.yesterday { opacity: 0.75; } /* last night's finals - present, but quieter than today's */
+.score-row.swapping { opacity: 0; } /* fading out/in while a rotating slot changes games */
 
 .score-logo {
   width: 1.05em;

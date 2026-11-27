@@ -99,7 +99,8 @@
    * Everything in one list: favorites' games today (and last night's) first,
    * then the rest of today's games, then favorites' upcoming games. Leagues
    * share rows - a row per league would stack five or six rows on a small
-   * panel, most of them holding a single game.
+   * panel, most of them holding a single game. Returns the favorites that
+   * get a fixed spot (`pinned`) and everything that shares the rest.
    */
   function orderGames(leagues, upcoming, leagueSettings) {
     const pinned = [];
@@ -116,38 +117,86 @@
   }
 
   /**
-   * Splits the games into screens of `cols x rows`. Favorites playing today
-   * stay on every screen (unless they alone overflow it - then they page
-   * like everything else); the remaining slots cycle through the rest.
+   * Assigns the games to `count` on-screen slots. Favorites playing today
+   * (or last night) each get a fixed slot of their own. Everything else is
+   * grouped by sport, and each sport gets at least one slot - more if it has
+   * more games, in proportion - so a slot always cycles within one sport
+   * and its league tag never changes. If there are more sports than free
+   * slots, the last slot cycles through the leftover sports together.
+   *
+   * Returns [{ key, games }], one per slot; a slot with more than one game
+   * rotates through them in place.
    */
-  function paginate({ pinned, rotating }, pageSize) {
-    const all = pinned.concat(rotating);
-    if (all.length <= pageSize) return [all];
-    if (pinned.length >= pageSize) {
-      const pages = [];
-      for (let i = 0; i < all.length; i += pageSize) pages.push(all.slice(i, i + pageSize));
-      return pages;
+  function assignSlots({ pinned, rotating }, count) {
+    let fixed = pinned;
+    let pool = rotating;
+    // Too many favorites to all stay put - let them rotate by sport too.
+    if (fixed.length >= count && pinned.length + rotating.length > count) {
+      fixed = [];
+      pool = pinned.concat(rotating);
     }
-    const slots = pageSize - pinned.length;
-    const pages = [];
-    for (let i = 0; i < rotating.length; i += slots) pages.push(pinned.concat(rotating.slice(i, i + slots)));
-    return pages;
+    const slots = fixed.map((game) => ({ key: `fav:${game.id}`, games: [game] }));
+    const free = count - slots.length;
+    if (!pool.length || free <= 0) return slots;
+
+    const groups = new Map(); // league -> games, in first-seen order
+    for (const game of pool) {
+      if (!groups.has(game.league)) groups.set(game.league, []);
+      groups.get(game.league).push(game);
+    }
+    let entries = [...groups.entries()];
+    if (entries.length > free) {
+      const leftover = entries.slice(free - 1);
+      entries = entries.slice(0, free - 1).concat([['mixed', leftover.flatMap(([, games]) => games)]]);
+    }
+
+    // One slot each, then hand out the rest to whichever sport has the most
+    // games per slot, never more slots than it has games.
+    const alloc = entries.map(() => 1);
+    let spare = free - entries.length;
+    while (spare > 0) {
+      let best = -1;
+      entries.forEach(([, games], i) => {
+        if (alloc[i] >= games.length) return;
+        if (best < 0 || games.length / alloc[i] > entries[best][1].length / alloc[best]) best = i;
+      });
+      if (best < 0) break;
+      alloc[best] += 1;
+      spare -= 1;
+    }
+
+    entries.forEach(([league, games], i) => {
+      for (let k = 0; k < alloc[i]; k++) {
+        slots.push({ key: `${league}:${k}`, games: games.filter((_, j) => j % alloc[i] === k) });
+      }
+    });
+    return slots;
+  }
+
+  function rowElement(game, leagueSettings) {
+    const holder = document.createElement('div');
+    holder.innerHTML = gameRow(game, leagueSettings).trim();
+    return holder.firstElementChild;
   }
 
   /**
-   * Lays one page out row by row across `cols` columns. Each column is its
-   * own grid so its rows align; a page short of games is padded with
-   * invisible rows so the module's height doesn't jump as pages turn.
+   * Pins the column tracks to the widest values across every game in
+   * rotation, not just the ones showing - otherwise a longer team name or
+   * status swapping in would resize the column and nudge every other row.
    */
-  function pageHtml(games, cols, rows, leagueSettings) {
-    const columns = Array.from({ length: cols }, () => []);
-    games.forEach((game, i) => columns[i % cols].push(gameRow(game, leagueSettings)));
-    return columns
-      .map((col) => {
-        while (col.length < rows) col.push('<div class="score-row filler" aria-hidden="true"><span></span></div>');
-        return `<div class="scoreboard-column">${col.join('')}</div>`;
-      })
-      .join('');
+  function lockColumnWidths(grid, columns, allGames, leagueSettings) {
+    const probe = document.createElement('div');
+    probe.className = 'scoreboard-column';
+    probe.style.cssText = `position:absolute;visibility:hidden;width:${columns[0].clientWidth}px;`;
+    probe.innerHTML = allGames.map((game) => gameRow(game, leagueSettings)).join('');
+    grid.appendChild(probe);
+    const tracks = getComputedStyle(probe).gridTemplateColumns.split(' ');
+    probe.remove();
+    if (tracks.length !== 5) return;
+    const fixedTracks = tracks.slice(0, 4).join(' ');
+    columns.forEach((col) => {
+      col.style.gridTemplateColumns = `${fixedTracks} minmax(0, 1fr)`;
+    });
   }
 
   function columnCount(container) {
@@ -156,39 +205,70 @@
   }
 
   function render(container, state, settings) {
-    clearInterval(state.pageTimer);
+    clearInterval(state.rotateTimer);
+    const leagueSettings = settings.leagues || {};
     const { leagues, upcoming } = state.data;
-    const ordered = orderGames(leagues, upcoming, settings.leagues || {});
-    if (!ordered.pinned.length && !ordered.rotating.length) {
+    const ordered = orderGames(leagues, upcoming, leagueSettings);
+    const total = ordered.pinned.length + ordered.rotating.length;
+    if (!total) {
       container.innerHTML = '<div class="score-status">No games today</div>';
       return;
     }
 
-    const all = ordered.pinned.length + ordered.rotating.length;
-    const cols = Math.min(columnCount(container), all);
     const maxRows = Math.max(1, Number(settings.maxRows) || 3);
-    const pages = paginate(ordered, cols * maxRows);
-    // Every page is padded to the tallest one's row count.
-    const rows = Math.min(maxRows, Math.ceil(Math.max(...pages.map((p) => p.length)) / cols));
+    const cols = Math.min(columnCount(container), total);
+    const slots = assignSlots(ordered, Math.min(total, cols * maxRows));
 
     const grid = document.createElement('div');
     grid.className = 'scoreboard-grid';
     grid.style.setProperty('--score-cols', cols);
+    const columns = Array.from({ length: cols }, () => {
+      const col = document.createElement('div');
+      col.className = 'scoreboard-column';
+      grid.appendChild(col);
+      return col;
+    });
     container.innerHTML = '';
     container.appendChild(grid);
 
-    state.page = state.page % pages.length || 0;
-    grid.innerHTML = pageHtml(pages[state.page], cols, rows, settings.leagues || {});
-    if (pages.length < 2) return;
+    // Slots fill row by row; each remembers where it was in its rotation
+    // across the 2-minute data refresh, so a long list still gets all the
+    // way through instead of restarting from the top every refresh.
+    const positions = state.positions;
+    state.positions = {};
+    const live = slots.map((slot, i) => {
+      const pos = (positions[slot.key] || 0) % slot.games.length;
+      state.positions[slot.key] = pos;
+      const el = rowElement(slot.games[pos], leagueSettings);
+      columns[i % cols].appendChild(el);
+      return { ...slot, el };
+    });
+    // Measure once the bundled font is in - fallback-font widths would be wrong.
+    const allGames = slots.flatMap((slot) => slot.games);
+    document.fonts.ready.then(() => {
+      if (grid.isConnected) lockColumnWidths(grid, columns, allGames, leagueSettings);
+    });
 
-    state.pageTimer = setInterval(() => {
-      grid.classList.add('turning');
+    // Swap one rotating slot at a time, round-robin, so each one changes
+    // every rotateSeconds but the panel never changes all at once.
+    const rotating = live.filter((slot) => slot.games.length > 1);
+    if (!rotating.length) return;
+    let turn = 0;
+    const stepMs = ((settings.rotateSeconds || 8) * 1000) / rotating.length;
+    state.rotateTimer = setInterval(() => {
+      const slot = rotating[turn % rotating.length];
+      turn += 1;
+      const pos = (state.positions[slot.key] + 1) % slot.games.length;
+      state.positions[slot.key] = pos;
+      slot.el.classList.add('swapping');
       setTimeout(() => {
-        state.page = (state.page + 1) % pages.length;
-        grid.innerHTML = pageHtml(pages[state.page], cols, rows, settings.leagues || {});
-        grid.classList.remove('turning');
+        const next = rowElement(slot.games[pos], leagueSettings);
+        next.classList.add('swapping');
+        slot.el.replaceWith(next);
+        slot.el = next;
+        requestAnimationFrame(() => requestAnimationFrame(() => next.classList.remove('swapping')));
       }, FADE_MS);
-    }, (settings.rotateSeconds || 8) * 1000);
+    }, stepMs);
   }
 
   async function fetchGames(container, state, settings) {
@@ -198,7 +278,7 @@
       state.data = { leagues: data.leagues || [], upcoming: data.upcoming || [] };
       render(container, state, settings);
     } catch (err) {
-      clearInterval(state.pageTimer);
+      clearInterval(state.rotateTimer);
       container.innerHTML = '<div class="score-status">Scores unavailable</div>';
     }
   }
@@ -207,7 +287,7 @@
   window.NimbusModules.scoreboard = {
     mount(container, settings) {
       container.classList.add('scoreboard-module');
-      const state = { data: null, page: 0, pageTimer: null, width: 0 };
+      const state = { data: null, positions: {}, rotateTimer: null, width: 0 };
 
       fetchGames(container, state, settings);
       const refreshId = setInterval(
@@ -228,7 +308,7 @@
       return {
         destroy() {
           clearInterval(refreshId);
-          clearInterval(state.pageTimer);
+          clearInterval(state.rotateTimer);
           observer.disconnect();
         },
       };
