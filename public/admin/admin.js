@@ -39,7 +39,9 @@
       sourceH = landscape ? presetH : presetW;
     }
 
-    const maxPreviewWidth = 480; // fits comfortably inside the admin card
+    // Fits inside the admin card - and on a phone, inside the screen (body
+    // and card padding plus borders take about 66px).
+    const maxPreviewWidth = Math.max(200, Math.min(480, window.innerWidth - 66));
     const scale = Math.min(1, maxPreviewWidth / sourceW);
 
     frame.style.width = `${sourceW}px`;
@@ -270,7 +272,7 @@
     enableToggle.className = 'toggle';
     enableToggle.checked = settings.enabled;
     enableToggle.addEventListener('change', () => setLeagueSettings(league, { enabled: enableToggle.checked }));
-    enableRow.append(enableToggle, document.createTextNode(`Show ${league} on the mirror`));
+    enableRow.append(enableToggle, document.createTextNode(`Show ${league} on the screen`));
     panel.appendChild(enableRow);
 
     const favoritesHeading = document.createElement('h3');
@@ -425,13 +427,13 @@
       .then((res) => res.json())
       .then((status) => {
         if (status.method === 'backlight') {
-          el.textContent = `Dimming the screen backlight (${status.device}).`;
+          el.textContent = 'Dimming using the screen backlight.';
         } else if ((dimming.method || 'auto') === 'backlight') {
-          el.textContent = 'No controllable backlight found on this display - using the on-screen overlay instead.';
+          el.textContent = 'No controllable backlight found on this screen - using the on-screen overlay instead.';
         } else if (status.available) {
-          el.textContent = `Using the on-screen overlay. This display also has a controllable backlight (${status.device}).`;
+          el.textContent = 'Using the on-screen overlay. This screen also has a controllable backlight.';
         } else {
-          el.textContent = 'Using the on-screen overlay - no controllable backlight found on this display.';
+          el.textContent = 'Using the on-screen overlay - no controllable backlight found on this screen.';
         }
       })
       .catch(() => {
@@ -514,7 +516,7 @@
       select.prepend(option);
       select.value = 'actual'; // default to the real panel once it's known
     }
-    option.textContent = `${info.width}x${info.height} (this mirror's display)`;
+    option.textContent = `${info.width}x${info.height} (this screen)`;
     if (currentConfig) {
       updatePreview(currentConfig);
       renderScaleHint();
@@ -522,6 +524,9 @@
   });
 
   document.getElementById('preview-size-select').addEventListener('change', () => {
+    if (currentConfig) updatePreview(currentConfig);
+  });
+  window.addEventListener('resize', () => {
     if (currentConfig) updatePreview(currentConfig);
   });
 

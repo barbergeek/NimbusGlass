@@ -8,162 +8,195 @@
 </head>
 <body>
   <h1>NimbusGlass</h1>
-  <p class="subtitle">Admin console — changes apply to the mirror instantly.</p>
+  <p class="subtitle">Admin console — changes apply to the screen instantly.</p>
   <div id="status">Saved</div>
 
-  <div class="card">
-    <h2>Preview</h2>
-    <p class="hint">Live render of the mirror display, at actual aspect ratio - updates automatically as you change settings below.</p>
-    <div class="field">
-      <label for="preview-size-select">Preview target size</label>
-      <select id="preview-size-select">
-        <option value="1024x600">1024x600 (7" touchscreen)</option>
-        <option value="800x480">800x480 (7" touchscreen, lower-res)</option>
-        <option value="1920x1080">1920x1080 (larger panel)</option>
-      </select>
-    </div>
-    <div id="preview-wrapper" class="preview-wrapper">
-      <iframe id="preview-frame" class="preview-frame" src="/" title="Mirror preview"></iframe>
-    </div>
-  </div>
+  <nav class="admin-tabs" role="tablist">
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-display" data-tab="display" aria-controls="tab-display">Display</button>
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-layout" data-tab="layout" aria-controls="tab-layout">Layout</button>
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-location" data-tab="location" aria-controls="tab-location">Location</button>
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-weather" data-tab="weather" aria-controls="tab-weather">Weather</button>
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-holidays" data-tab="holidays" aria-controls="tab-holidays">Holidays</button>
+    <button type="button" class="admin-tab" role="tab" id="tab-btn-sports" data-tab="sports" aria-controls="tab-sports">Sports</button>
+  </nav>
 
-  <div class="card">
-    <h2>Display</h2>
-    <div class="field">
-      <label for="theme-select">Theme</label>
-      <select id="theme-select"></select>
-    </div>
-    <p class="hint" id="theme-hint"></p>
-    <div class="field">
-      <label for="orientation-select">Orientation</label>
-      <select id="orientation-select">
-        <option value="landscape">Landscape</option>
-        <option value="portrait">Portrait</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="rotation-select">Screen rotation</label>
-      <select id="rotation-select">
-        <option value="0">Normal</option>
-        <option value="180">Upside down (180°)</option>
-        <option value="90">90°</option>
-        <option value="270">270°</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="scale-select">Display scale</label>
-      <select id="scale-select">
-        <option value="100">100% (native)</option>
-        <option value="90">90%</option>
-        <option value="78">78%</option>
-      </select>
-    </div>
-    <p class="hint" id="scale-hint">Smaller fits more on the screen; text gets smaller too.</p>
-    <p class="hint" id="rotation-status">Rotates the physical screen. For 90° or 270°, set Orientation to Portrait too.</p>
-
-    <h3 class="panel-subheading">Overnight dimming</h3>
-    <label class="row">
-      <input type="checkbox" id="dimming-enabled" class="toggle" />
-      <span style="flex: 1;">Dim the mirror overnight</span>
-    </label>
-    <div class="row">
-      <div class="field" style="flex: 1;">
-        <label for="dimming-start">Dim at</label>
-        <input type="time" id="dimming-start" />
+  <div class="admin-layout">
+    <aside class="preview-pane">
+      <div class="card">
+        <h2>Preview</h2>
+        <p class="hint">Live render of the screen, at actual aspect ratio - updates automatically as you change settings.</p>
+        <div class="field">
+          <label for="preview-size-select">Preview target size</label>
+          <select id="preview-size-select">
+            <option value="1024x600">1024x600 (7" touchscreen)</option>
+            <option value="800x480">800x480 (7" touchscreen, lower-res)</option>
+            <option value="1920x1080">1920x1080 (larger panel)</option>
+          </select>
+        </div>
+        <div id="preview-wrapper" class="preview-wrapper">
+          <iframe id="preview-frame" class="preview-frame" src="/" title="Screen preview"></iframe>
+        </div>
       </div>
-      <div class="field" style="flex: 1;">
-        <label for="dimming-end">Brighten at</label>
-        <input type="time" id="dimming-end" />
+    </aside>
+
+    <main class="tab-panels">
+    <section class="tab-panel" id="tab-display" role="tabpanel" aria-labelledby="tab-btn-display">
+      <div class="card">
+        <h2>Display</h2>
+        <div class="field">
+          <label for="theme-select">Theme</label>
+          <select id="theme-select"></select>
+        </div>
+        <p class="hint" id="theme-hint"></p>
+        <div class="field">
+          <label for="orientation-select">Orientation</label>
+          <select id="orientation-select">
+            <option value="landscape">Landscape</option>
+            <option value="portrait">Portrait</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="rotation-select">Screen rotation</label>
+          <select id="rotation-select">
+            <option value="0">Normal</option>
+            <option value="180">Upside down (180°)</option>
+            <option value="90">90°</option>
+            <option value="270">270°</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="scale-select">Display scale</label>
+          <select id="scale-select">
+            <option value="100">100% (native)</option>
+            <option value="90">90%</option>
+            <option value="78">78%</option>
+          </select>
+        </div>
+        <p class="hint" id="scale-hint">Smaller fits more on the screen; text gets smaller too.</p>
+        <p class="hint" id="rotation-status">Rotates the physical screen. For 90° or 270°, set Orientation to Portrait too.</p>
+
+        <h3 class="panel-subheading">Overnight dimming</h3>
+        <label class="row">
+          <input type="checkbox" id="dimming-enabled" class="toggle" />
+          <span style="flex: 1;">Dim the screen overnight</span>
+        </label>
+        <div class="row">
+          <div class="field" style="flex: 1;">
+            <label for="dimming-start">Dim at</label>
+            <input type="time" id="dimming-start" />
+          </div>
+          <div class="field" style="flex: 1;">
+            <label for="dimming-end">Brighten at</label>
+            <input type="time" id="dimming-end" />
+          </div>
+        </div>
+        <div class="field">
+          <label for="dimming-brightness">Brightness while dimmed: <span id="dimming-brightness-value"></span>%</label>
+          <input type="range" id="dimming-brightness" min="5" max="90" step="5" />
+        </div>
+        <div class="field">
+          <label for="dimming-method">Dim using</label>
+          <select id="dimming-method">
+            <option value="auto">Automatic (screen backlight if available)</option>
+            <option value="backlight">Screen backlight</option>
+            <option value="overlay">On-screen overlay</option>
+          </select>
+        </div>
+        <p class="hint" id="dimming-method-status"></p>
       </div>
-    </div>
-    <div class="field">
-      <label for="dimming-brightness">Brightness while dimmed: <span id="dimming-brightness-value"></span>%</label>
-      <input type="range" id="dimming-brightness" min="5" max="90" step="5" />
-    </div>
-    <div class="field">
-      <label for="dimming-method">Dim using</label>
-      <select id="dimming-method">
-        <option value="auto">Automatic (screen backlight if available)</option>
-        <option value="backlight">Screen backlight</option>
-        <option value="overlay">On-screen overlay</option>
-      </select>
-    </div>
-    <p class="hint" id="dimming-method-status"></p>
-  </div>
 
-  <div class="card">
-    <h2>Modules & Layout</h2>
-    <p class="hint">Grouped by zone. Drag a module to reorder it within its zone (top to bottom, or left to right in the bottom bar); use the dropdown to move it to a different zone.</p>
-    <div id="module-rows"></div>
-  </div>
+    </section>
 
-  <div class="card">
-    <h2>Location</h2>
-    <p class="hint">Shared by Weather and Upcoming Holidays.</p>
-    <div class="field">
-      <label for="location-city">City (e.g. "Haymarket,VA,US") - used for weather</label>
-      <input type="text" id="location-city" />
-    </div>
-    <div class="field">
-      <label for="location-country">Country code (e.g. "US") - used for holidays</label>
-      <input type="text" id="location-country" maxlength="2" style="text-transform: uppercase;" />
-    </div>
-  </div>
+    <section class="tab-panel" id="tab-layout" role="tabpanel" aria-labelledby="tab-btn-layout">
+      <div class="card">
+        <h2>Modules & Layout</h2>
+        <p class="hint">Grouped by zone. Drag a module to reorder it within its zone (top to bottom, or left to right in the bottom bar); use the dropdown to move it to a different zone.</p>
+        <div id="module-rows"></div>
+      </div>
 
-  <div class="card">
-    <h2>Weather</h2>
-    <div class="field">
-      <label for="weather-units">Units</label>
-      <select id="weather-units">
-        <option value="imperial">Fahrenheit</option>
-        <option value="metric">Celsius</option>
-      </select>
-    </div>
-    <div class="field">
-      <label for="weather-apikey">OpenWeatherMap API key</label>
-      <input type="password" id="weather-apikey" placeholder="leave blank to use server .env value" />
-    </div>
-  </div>
+    </section>
 
-  <div class="card">
-    <h2>Upcoming Holidays</h2>
-    <div class="field">
-      <label for="holidays-count">Number of holidays to show</label>
-      <input type="number" id="holidays-count" min="1" max="20" />
-    </div>
-  </div>
+    <section class="tab-panel" id="tab-location" role="tabpanel" aria-labelledby="tab-btn-location">
+      <div class="card">
+        <h2>Location</h2>
+        <p class="hint">Shared by Weather and Upcoming Holidays.</p>
+        <div class="field">
+          <label for="location-city">City (e.g. "Haymarket,VA,US") - used for weather</label>
+          <input type="text" id="location-city" />
+        </div>
+        <div class="field">
+          <label for="location-country">Country code (e.g. "US") - used for holidays</label>
+          <input type="text" id="location-country" maxlength="2" style="text-transform: uppercase;" />
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>Sports Scoreboard</h2>
-    <div class="field">
-      <label for="scoreboard-rows">Rows of games on screen</label>
-      <input type="number" id="scoreboard-rows" min="1" max="10" />
-    </div>
-    <div class="field">
-      <label for="scoreboard-rotate">When there are more games than fit, swap each sport's game every (seconds)</label>
-      <input type="number" id="scoreboard-rotate" min="3" max="60" />
-    </div>
-    <div class="field">
-      <label for="scoreboard-upcoming">Show favorite teams' next game within (days, 0 = off)</label>
-      <input type="number" id="scoreboard-upcoming" min="0" max="14" />
-    </div>
-    <div class="field">
-      <label for="scoreboard-rollover">Keep yesterday's scores until</label>
-      <select id="scoreboard-rollover">
-        <option value="0">Off - only today's games</option>
-        <option value="6">6 AM</option>
-        <option value="9">9 AM</option>
-        <option value="12">Noon</option>
-        <option value="15">3 PM</option>
-        <option value="18">6 PM</option>
-      </select>
-    </div>
-    <div class="league-tabs" id="league-tabs"></div>
-    <div id="league-panel"></div>
+    </section>
+
+    <section class="tab-panel" id="tab-weather" role="tabpanel" aria-labelledby="tab-btn-weather">
+      <div class="card">
+        <h2>Weather</h2>
+        <div class="field">
+          <label for="weather-units">Units</label>
+          <select id="weather-units">
+            <option value="imperial">Fahrenheit</option>
+            <option value="metric">Celsius</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="weather-apikey">OpenWeatherMap API key</label>
+          <input type="password" id="weather-apikey" placeholder="leave blank to use server .env value" />
+        </div>
+      </div>
+
+    </section>
+
+    <section class="tab-panel" id="tab-holidays" role="tabpanel" aria-labelledby="tab-btn-holidays">
+      <div class="card">
+        <h2>Upcoming Holidays</h2>
+        <div class="field">
+          <label for="holidays-count">Number of holidays to show</label>
+          <input type="number" id="holidays-count" min="1" max="20" />
+        </div>
+      </div>
+
+    </section>
+
+    <section class="tab-panel" id="tab-sports" role="tabpanel" aria-labelledby="tab-btn-sports">
+      <div class="card">
+        <h2>Sports Scoreboard</h2>
+        <div class="field">
+          <label for="scoreboard-rows">Rows of games on screen</label>
+          <input type="number" id="scoreboard-rows" min="1" max="10" />
+        </div>
+        <div class="field">
+          <label for="scoreboard-rotate">When there are more games than fit, swap each sport's game every (seconds)</label>
+          <input type="number" id="scoreboard-rotate" min="3" max="60" />
+        </div>
+        <div class="field">
+          <label for="scoreboard-upcoming">Show favorite teams' next game within (days, 0 = off)</label>
+          <input type="number" id="scoreboard-upcoming" min="0" max="14" />
+        </div>
+        <div class="field">
+          <label for="scoreboard-rollover">Keep yesterday's scores until</label>
+          <select id="scoreboard-rollover">
+            <option value="0">Off - only today's games</option>
+            <option value="6">6 AM</option>
+            <option value="9">9 AM</option>
+            <option value="12">Noon</option>
+            <option value="15">3 PM</option>
+            <option value="18">6 PM</option>
+          </select>
+        </div>
+        <div class="league-tabs" id="league-tabs"></div>
+        <div id="league-panel"></div>
+      </div>
+    </section>
+    </main>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/js/themes.js"></script>
+  <script src="admin-tabs.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

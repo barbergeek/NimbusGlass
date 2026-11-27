@@ -243,6 +243,7 @@ h1 {
 
 #status {
   position: fixed;
+  z-index: 10;
   top: 16px;
   right: 16px;
   padding: 8px 14px;
@@ -254,3 +255,69 @@ h1 {
 }
 
 #status.visible { opacity: 1; }
+
+/* --- Tabs --- */
+.admin-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -16px 16px;
+  padding: 8px 16px 0;
+  background: #0d0f1a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.admin-tab {
+  flex: 0 0 auto;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: #8a90b8;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 8px 14px 10px;
+  cursor: pointer;
+}
+
+.admin-tab:hover { color: #f2f3fb; }
+
+.admin-tab.active {
+  color: #5ea8ff;
+  border-bottom-color: #5ea8ff;
+  font-weight: 600;
+}
+
+.admin-tab:focus-visible {
+  outline: 2px solid #5ea8ff;
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.tab-panel[hidden] { display: none; }
+
+/* The preview stays on every tab - beside the settings when there's room
+   (and sticky, so it stays in view while you scroll a long tab), above
+   them on a phone. */
+.admin-layout {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-panels { min-width: 0; }
+
+@media (min-width: 1000px) {
+  .admin-layout {
+    display: grid;
+    grid-template-columns: min-content minmax(0, 1fr); /* preview card hugs the preview */
+    gap: 16px;
+    align-items: start;
+  }
+  .preview-pane {
+    position: sticky;
+    top: 60px;
+  }
+}
