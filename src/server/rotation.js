@@ -16,6 +16,9 @@ const configStore = require('./configStore');
  * calls POST /api/display/rotation each time the session comes up, and a
  * config change re-applies it live.
  *
+ * Under labwc it also rotates touch input to match (applyTouchCalibration).
+ * On X11 touch isn't rotated.
+ *
  * This is separate from config.orientation, which only switches the CSS
  * layout between landscape and portrait.
  */
@@ -23,6 +26,59 @@ const configStore = require('./configStore');
 const VALID_ROTATIONS = [0, 90, 180, 270];
 const WLR_TRANSFORMS = { 0: 'normal', 90: '90', 180: '180', 270: '270' };
 const XRANDR_ROTATIONS = { 0: 'normal', 90: 'left', 180: 'inverted', 270: 'right' };
+
+// libinput touch calibration per rotation, so taps land where the rotated
+// picture is - the compositor rotates the picture but not the touch panel's
+// coordinates. 180 is verified on the 7" DSI touchscreen; the 90/270
+// matrices follow libinput's documented clockwise/counter-clockwise forms
+// but haven't been tested on a panel - if taps come out mirrored at 90 or
+// 270, swap those two.
+const TOUCH_MATRICES = {
+  0: '1 0 0 0 1 0',
+  90: '0 1 0 -1 0 1',
+  180: '-1 0 1 0 -1 1',
+  270: '0 -1 1 1 0 0',
+};
+const RC_MARKER = '<!-- Managed by NimbusGlass (src/server/rotation.js) - rewritten when the screen rotation changes. -->';
+
+function labwcConfigDir() {
+  return path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'labwc');
+}
+
+/**
+ * Writes the touch calibration for `rotation` into labwc's rc.xml and tells
+ * labwc to reload it. Only touches an rc.xml NimbusGlass created - one you've
+ * written yourself is left alone (add the calibrationMatrix to it by hand).
+ * Returns a short status for the admin page.
+ */
+async function applyTouchCalibration(rotation) {
+  const file = path.join(labwcConfigDir(), 'rc.xml');
+  let existing = null;
+  try {
+    existing = fs.readFileSync(file, 'utf8');
+  } catch {
+    // no rc.xml yet - we'll create it
+  }
+  if (existing !== null && !existing.includes(RC_MARKER)) {
+    return 'touch not rotated: ~/.config/labwc/rc.xml is your own file';
+  }
+  const xml = `<?xml version="1.0"?>
+${RC_MARKER}
+<labwc_config>
+  <libinput>
+    <device category="touch">
+      <calibrationMatrix>${TOUCH_MATRICES[rotation]}</calibrationMatrix>
+    </device>
+  </libinput>
+</labwc_config>
+`;
+  if (existing === xml) return 'touch rotated';
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, xml);
+  // SIGHUP is labwc's "reconfigure" (what `labwc --reconfigure` sends).
+  await run('pkill', ['-HUP', '-x', 'labwc'], {}).catch(() => {});
+  return 'touch rotated';
+}
 
 function run(cmd, args, env) {
   return new Promise((resolve, reject) => {
@@ -106,8 +162,9 @@ class RotationController {
     try {
       const outputs =
         session.kind === 'wayland' ? await applyWayland(rotation, session.env) : await applyX11(rotation, session.env);
+      const touch = session.kind === 'wayland' ? `; ${await applyTouchCalibration(rotation)}` : '';
       this.lastApplied = rotation;
-      this.lastResult = { ok: true, message: `Rotated ${outputs.join(', ') || 'no outputs'} to ${rotation}°` };
+      this.lastResult = { ok: true, message: `Rotated ${outputs.join(', ') || 'no outputs'} to ${rotation}°${touch}` };
     } catch (err) {
       const hint = session.kind === 'wayland' ? ' (is wlr-randr installed?)' : '';
       this.lastResult = { ok: false, message: `Rotation failed: ${err.message}${hint}` };

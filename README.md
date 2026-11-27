@@ -14,6 +14,11 @@ MagicMirror module. Weather and Holidays share one configured location
 (`/admin` → Location) rather than each module wanting its own; neither
 sports data nor holiday data needs an API key.
 
+On a touchscreen, tap any game on the scoreboard for its details: records,
+line score, game or season leaders, latest scoring plays, and the betting
+line before kickoff. Touch input is rotated along with the screen
+(`/admin` → Display → Screen rotation) under labwc.
+
 ## Why it's built this way
 
 - **Vanilla JS, no bundler.** On a Pi 3 (1GB RAM, quad-core Cortex-A53),
@@ -52,14 +57,15 @@ NimbusGlass/
 │   ├── configStore.js              # load/merge/persist data/config.json
 │   ├── cache.js                    # in-memory TTL cache for upstream fetches
 │   ├── backlight.js                # overnight dimming via /sys/class/backlight, when the panel has one
-│   ├── rotation.js                 # screen rotation via wlr-randr (Wayland) / xrandr (X11)
+│   ├── rotation.js                 # screen + touch rotation via wlr-randr and labwc rc.xml (Wayland) / xrandr (X11)
 │   ├── providers/
 │   │   ├── weather.js                 # OpenWeatherMap current + 3-day forecast
 │   │   ├── holidays.js                 # date.nager.at upcoming public holidays
 │   │   ├── sports.js                  # ESPN scoreboard fetch, league path map
+│   │   ├── gameDetail.js              # ESPN per-game summary, trimmed for the tap-for-details view
 │   │   └── teams.js                    # ESPN team rosters, for the /admin team picker
 │   └── routes/
-│       └── api.js                      # /api/config, /api/weather, /api/holidays, /api/scores, /api/teams/:league, /api/display
+│       └── api.js                      # /api/config, /api/weather, /api/holidays, /api/scores, /api/scores/:league/:id, /api/teams/:league, /api/display
 ├── public/                       # the mirror display itself
 │   ├── index.html
 │   ├── css/

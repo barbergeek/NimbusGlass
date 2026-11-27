@@ -240,3 +240,234 @@
 
 .score-row.live .score-status-text { color: var(--accent-1); font-weight: 600; }
 
+
+/* Scoreboard rows are tap targets on a touchscreen: the whole row opens
+   the game's details, without text selection or a double-tap zoom delay. */
+.score-row[data-game-id] {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Game detail (tap a scoreboard game) ---
+   Fixed over the whole screen, below the night-dimming overlay (z-index
+   1000) so it dims along with everything else. Any tap closes it. */
+#game-detail {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  animation: gd-in 200ms ease;
+}
+
+@keyframes gd-in { from { opacity: 0; } }
+
+.gd-card {
+  width: min(760px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 18px;
+  background-color: var(--bg);
+  background-image: linear-gradient(var(--surface), var(--surface)), var(--bg-glow, none);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+}
+
+.gd-loading {
+  width: auto;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+.gd-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.gd-header .score-league-tag { font-size: 0.85rem; }
+.gd-status { color: var(--text-secondary); font-weight: 600; }
+.gd-status.live { color: var(--accent-1); }
+.gd-tv {
+  margin-left: auto;
+  color: var(--accent-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gd-matchup {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.gd-team {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  align-items: center;
+}
+
+.gd-team.home {
+  grid-template-columns: minmax(0, 1fr) auto;
+  text-align: right;
+}
+
+.gd-logo {
+  grid-row: 1 / 3;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.gd-team.home .gd-logo { grid-column: 2; }
+.gd-team.home .gd-team-name,
+.gd-team.home .gd-record { grid-column: 1; }
+
+.gd-team-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gd-rank {
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  font-weight: 600;
+  margin-right: 0.3em;
+}
+
+.gd-rank::before { content: '#'; }
+.gd-record { color: var(--text-secondary); font-size: 0.95rem; }
+
+.gd-center { text-align: center; }
+
+.gd-score {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--accent-4);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Once there's a winner, the loser's score fades back, as on the scoreboard. */
+.gd-score:has(.winner) span:not(.winner):not(.score-sep) { opacity: 0.55; }
+.gd-at { font-size: 1.8rem; color: var(--text-secondary); line-height: 1; }
+.gd-start { color: var(--accent-4); font-weight: 600; font-size: 1.05rem; margin-top: 4px; white-space: nowrap; }
+
+.gd-linescore {
+  align-self: center;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.gd-linescore th,
+.gd-linescore td {
+  padding: 1px 10px;
+  text-align: center;
+}
+
+.gd-linescore tr:first-child th { color: var(--text-secondary); font-weight: 600; font-size: 0.8rem; }
+.gd-linescore .gd-ls-team { text-align: left; color: var(--text-primary); }
+.gd-linescore .gd-ls-total { font-weight: 700; color: var(--accent-4); }
+
+.gd-body {
+  display: flex;
+  gap: 18px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.gd-block {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.gd-block-title {
+  color: var(--accent-2);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gd-leaders {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gd-leader-abbr { font-weight: 700; font-size: 0.9rem; }
+
+.gd-leader {
+  display: grid;
+  grid-template-columns: 6em auto minmax(0, 1fr);
+  gap: 8px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.gd-leader-label { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+.gd-leader-player { font-weight: 600; }
+.gd-leader-value { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; }
+
+.gd-play {
+  display: grid;
+  grid-template-columns: 3em minmax(0, 1fr) auto;
+  gap: 8px;
+  font-size: 0.88rem;
+  white-space: nowrap;
+}
+
+.gd-play-team { font-weight: 700; }
+.gd-play-text { overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); }
+.gd-play-score { font-variant-numeric: tabular-nums; color: var(--accent-4); font-weight: 600; }
+
+.gd-fact {
+  display: flex;
+  gap: 10px;
+  font-size: 0.95rem;
+}
+
+.gd-fact span {
+  color: var(--text-secondary);
+  min-width: 6.5em;
+}
+
+.gd-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.gd-footer span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.gd-close-hint { opacity: 0.7; }

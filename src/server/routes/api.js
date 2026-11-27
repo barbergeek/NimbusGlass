@@ -6,6 +6,7 @@ const backlight = require('../backlight');
 const rotation = require('../rotation');
 const { fetchWeather } = require('../providers/weather');
 const { fetchScores } = require('../providers/sports');
+const { fetchGameDetail } = require('../providers/gameDetail');
 const { fetchHolidays } = require('../providers/holidays');
 const { fetchTeams } = require('../providers/teams');
 const { fetchConferences } = require('../providers/conferences');
@@ -56,6 +57,15 @@ function buildApiRouter() {
       res.json(data);
     } catch (err) {
       res.status(502).json({ error: err.message, leagues: [], upcoming: [] });
+    }
+  });
+
+  // One game's details, for tapping a game on the scoreboard.
+  router.get('/scores/:league/:eventId', async (req, res) => {
+    try {
+      res.json(await fetchGameDetail(req.params.league, req.params.eventId));
+    } catch (err) {
+      res.status(err.status || 502).json({ error: err.message });
     }
   });
 

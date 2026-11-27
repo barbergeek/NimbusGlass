@@ -85,7 +85,7 @@
       .filter(Boolean)
       .join(' ');
     return `
-      <div class="${classes}">
+      <div class="${classes}" data-league="${esc(game.league)}" data-game-id="${esc(game.id)}">
         <span class="score-league-tag">${esc(league)}</span>
         ${teamCell(game.away, 'away', game, favorites)}
         <span class="score-value">${score}</span>
@@ -283,10 +283,174 @@
     }
   }
 
+  // --- Tap a game for details ---------------------------------------------
+  // The detail view lives on <body>, outside the module, so the scoreboard's
+  // periodic re-render (and config pushes) can't tear it down mid-read.
+
+  const DETAIL_AUTO_CLOSE_MS = 45 * 1000; // someone taps, reads, walks away
+  const DETAIL_LIVE_REFRESH_MS = 30 * 1000;
+  let detail = null; // { el, closeTimer, refreshTimer }
+
+  function closeDetail() {
+    if (!detail) return;
+    clearTimeout(detail.closeTimer);
+    clearInterval(detail.refreshTimer);
+    detail.el.remove();
+    detail = null;
+  }
+
+  function detailTeam(team, side) {
+    const rank = team.rank ? `<span class="gd-rank">${esc(team.rank)}</span>` : '';
+    return `
+      <div class="gd-team ${side}${team.winner ? ' winner' : ''}">
+        ${team.logo ? `<img class="gd-logo" src="${esc(team.logo)}" alt="" onerror="this.style.visibility='hidden'">` : ''}
+        <div class="gd-team-name">${rank}${esc(team.name)}</div>
+        ${team.record ? `<div class="gd-record">${esc(team.record)}</div>` : ''}
+      </div>`;
+  }
+
+  function detailCenter(d) {
+    if (d.state === 'pre') {
+      return `<div class="gd-center"><div class="gd-at">@</div><div class="gd-start">${esc(dayAndTime(d.startTime))}</div></div>`;
+    }
+    return `
+      <div class="gd-center">
+        <div class="gd-score">
+          <span class="${d.away.winner ? 'winner' : ''}">${esc(d.away.score ?? '-')}</span>
+          <span class="score-sep">–</span>
+          <span class="${d.home.winner ? 'winner' : ''}">${esc(d.home.score ?? '-')}</span>
+        </div>
+      </div>`;
+  }
+
+  function lineScore(d) {
+    if (!d.periods.length) return '';
+    const head = d.periods.map((p) => `<th>${esc(p)}</th>`).join('');
+    const row = (team) =>
+      `<tr><th class="gd-ls-team">${esc(team.abbreviation)}</th>${d.periods
+        .map((_, i) => `<td>${esc(team.linescores[i] ?? '')}</td>`)
+        .join('')}<td class="gd-ls-total">${esc(team.score ?? '')}</td></tr>`;
+    return `<table class="gd-linescore"><tr><th></th>${head}<th>T</th></tr>${row(d.away)}${row(d.home)}</table>`;
+  }
+
+  function leadersBlock(d) {
+    if (!d.leaders.length) return '';
+    const title = d.leadersAre === 'season' ? 'Season leaders' : 'Game leaders';
+    // Away team first, to match the matchup row above.
+    const ordered = [...d.leaders].sort((a, b) => (b.team === d.away.abbreviation) - (a.team === d.away.abbreviation));
+    const groups = ordered
+      .map(
+        (group) => `
+        <div class="gd-leader-team">
+          <div class="gd-leader-abbr">${esc(group.team)}</div>
+          ${group.categories
+            .map(
+              (c) => `<div class="gd-leader"><span class="gd-leader-label">${esc(c.label.replace(/ Yards$/, ''))}</span>
+                <span class="gd-leader-player">${esc(c.player)}</span>
+                <span class="gd-leader-value">${esc(c.value)}</span></div>`
+            )
+            .join('')}
+        </div>`
+      )
+      .join('');
+    return `<div class="gd-block"><div class="gd-block-title">${title}</div><div class="gd-leaders">${groups}</div></div>`;
+  }
+
+  function sideBlock(d) {
+    if (d.scoringPlays.length) {
+      const plays = d.scoringPlays
+        .map(
+          (p) => `<div class="gd-play">
+            <span class="gd-play-team">${esc(p.team || '')}</span>
+            <span class="gd-play-text">${esc(p.text)}</span>
+            ${p.awayScore != null ? `<span class="gd-play-score">${esc(p.awayScore)}–${esc(p.homeScore)}</span>` : ''}
+          </div>`
+        )
+        .join('');
+      return `<div class="gd-block"><div class="gd-block-title">Latest scoring</div>${plays}</div>`;
+    }
+    const lines = [];
+    if (d.winChance) {
+      const fav = d.winChance.home >= d.winChance.away ? d.home : d.away;
+      lines.push(`<div class="gd-fact"><span>Win chance</span>${esc(fav.abbreviation)} ${esc(Math.round(Math.max(d.winChance.home, d.winChance.away)))}%</div>`);
+    }
+    if (d.odds && d.odds.line) lines.push(`<div class="gd-fact"><span>Line</span>${esc(d.odds.line)}</div>`);
+    if (d.odds && d.odds.overUnder != null) lines.push(`<div class="gd-fact"><span>Over/under</span>${esc(d.odds.overUnder)}</div>`);
+    return lines.length ? `<div class="gd-block"><div class="gd-block-title">Matchup</div>${lines.join('')}</div>` : '';
+  }
+
+  function detailHtml(d) {
+    const league = LEAGUE_ABBREVIATIONS[d.league] || d.league;
+    const status = d.state === 'pre' ? '' : `<span class="gd-status${d.state === 'in' ? ' live' : ''}">${esc(d.statusDetail)}</span>`;
+    const where = [d.venue && d.venue.name, d.venue && d.venue.city].filter(Boolean).join(' · ');
+    const crowd = d.attendance ? ` · ${Number(d.attendance).toLocaleString()} attending` : '';
+    return `
+      <div class="gd-card">
+        <div class="gd-header">
+          <span class="score-league-tag">${esc(league)}</span>
+          ${status}
+          ${d.broadcasts.length ? `<span class="gd-tv">${esc(d.broadcasts.join(' · '))}</span>` : ''}
+        </div>
+        <div class="gd-matchup">
+          ${detailTeam(d.away, 'away')}
+          ${detailCenter(d)}
+          ${detailTeam(d.home, 'home')}
+        </div>
+        ${lineScore(d)}
+        <div class="gd-body">
+          ${leadersBlock(d)}
+          ${sideBlock(d)}
+        </div>
+        <div class="gd-footer">
+          <span>${esc(where)}${esc(crowd)}</span>
+          <span class="gd-close-hint">Tap to close</span>
+        </div>
+      </div>`;
+  }
+
+  async function loadDetail(league, id) {
+    const res = await fetch(`/api/scores/${encodeURIComponent(league)}/${encodeURIComponent(id)}`);
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || res.status);
+    return data;
+  }
+
+  async function openDetail(league, id) {
+    closeDetail();
+    const el = document.createElement('div');
+    el.id = 'game-detail';
+    el.innerHTML = '<div class="gd-card gd-loading">Loading…</div>';
+    el.addEventListener('click', closeDetail);
+    document.body.appendChild(el);
+    const current = { el, closeTimer: setTimeout(closeDetail, DETAIL_AUTO_CLOSE_MS), refreshTimer: null };
+    detail = current;
+
+    const show = async () => {
+      try {
+        const data = await loadDetail(league, id);
+        if (detail !== current) return; // closed or replaced while loading
+        el.innerHTML = detailHtml(data);
+        if (data.state === 'in' && !current.refreshTimer) {
+          current.refreshTimer = setInterval(show, DETAIL_LIVE_REFRESH_MS);
+        }
+      } catch (err) {
+        if (detail === current) el.innerHTML = '<div class="gd-card gd-loading">Game details unavailable</div>';
+      }
+    };
+    show();
+  }
+
   window.NimbusModules = window.NimbusModules || {};
   window.NimbusModules.scoreboard = {
     mount(container, settings) {
       container.classList.add('scoreboard-module');
+      // One handler on the module rather than per row: rotating slots swap
+      // their row elements every few seconds.
+      const onTap = (e) => {
+        const row = e.target.closest('.score-row[data-game-id]');
+        if (row) openDetail(row.dataset.league, row.dataset.gameId);
+      };
+      container.addEventListener('click', onTap);
       const state = { data: null, positions: {}, rotateTimer: null, width: 0 };
 
       fetchGames(container, state, settings);
@@ -310,6 +474,7 @@
           clearInterval(refreshId);
           clearInterval(state.rotateTimer);
           observer.disconnect();
+          container.removeEventListener('click', onTap);
         },
       };
     },
